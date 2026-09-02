@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>MGT daily Planner</title>
+    <!-- Google Identity Services client script -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
       :root {
@@ -116,7 +117,6 @@
         position: relative;
       }
 
-      /* Drag and Drop Visual States */
       .column-card.dragging {
         opacity: 0.35;
         border: 2px dashed var(--primary-2);
@@ -129,7 +129,6 @@
         transform: translateY(-2px);
       }
 
-      /* Card Drag Handle Bar */
       .card-drag-handle {
         display: flex;
         align-items: center;
@@ -362,7 +361,6 @@
         white-space: nowrap;
       }
 
-      /* Clean Gmail Header Alignment */
       .feed-header-actions {
         display: flex;
         align-items: center;
@@ -378,7 +376,7 @@
         border: 1px solid rgba(56, 189, 248, 0.18);
         border-radius: 8px;
         padding: 6px 10px;
-        max-width: 170px;
+        max-width: 220px;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -388,6 +386,11 @@
         color: #a7f3d0; 
         border-color: rgba(52, 211, 153, 0.4);
         background: rgba(6, 78, 59, 0.35);
+      }
+      .card-status.syncing { 
+        color: #fef08a; 
+        border-color: rgba(250, 204, 21, 0.4);
+        background: rgba(113, 63, 18, 0.35);
       }
       .card-status.error {
         color: #fecaca;
@@ -534,6 +537,7 @@
       </header>
 
       <div id="workspaceGrid" class="workspace-grid">
+        <!-- 1. Task Planner -->
         <section id="card-tasks" class="column-card" draggable="true" data-card-id="tasks">
           <div class="card-drag-handle" title="Drag to reorder column">
             <span class="drag-dots"></span>
@@ -560,6 +564,7 @@
           <ul id="taskList" class="list" aria-live="polite"></ul>
         </section>
 
+        <!-- 2. Auto-saving Scratchpad -->
         <aside id="card-notes" class="column-card" draggable="true" data-card-id="notes">
           <div class="card-drag-handle" title="Drag to reorder column">
             <span class="drag-dots"></span>
@@ -567,7 +572,7 @@
 
           <div class="card-header">
             <span class="card-title">Quick Scratchpad</span>
-            <span id="noteStatus" class="card-status">Saved</span>
+            <span id="noteStatus" class="card-status">Local storage</span>
           </div>
           <textarea
             id="quickNotes"
@@ -576,6 +581,7 @@
           ></textarea>
         </aside>
 
+        <!-- 3. Live Gmail Feed with Aligned Header & Resilient GIS Auth -->
         <section id="card-gmail" class="column-card" draggable="true" data-card-id="gmail">
           <div class="card-drag-handle" title="Drag to reorder column">
             <span class="drag-dots"></span>
@@ -600,14 +606,15 @@
 
     <script>
       // ==========================================
-      // CONSTANTS & STORAGE KEYS
+      // CONSTANTS & CLOUD STORAGE CONFIGURATION
       // ==========================================
       const CLIENT_ID = '912308604808-p1nkq6drca0mvt60ipp9u1bpj9bh5iud.apps.googleusercontent.com';
-      const GMAIL_SCOPE = 'https://www.googleapis.com/auth/gmail.readonly';
+      // Added Google Drive AppData Scope for cross-device cloud sync
+      const OAUTH_SCOPES = 'https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/drive.appdata';
+      const CLOUD_SYNC_FILENAME = 'mgt_dashboard_data.json';
       
       const SESSION_TOKEN_KEY = 'mgt_session_access_token';
       const SESSION_USER_KEY = 'mgt_session_user_email';
-      const NOTE_KEY = 'daily-focus.notes';
       const COLUMN_ORDER_KEY = 'mgt_column_order';
 
       let tokenClient = null;
@@ -615,6 +622,7 @@
       let accessToken = localStorage.getItem(SESSION_TOKEN_KEY) || null;
       let currentUserEmail = localStorage.getItem(SESSION_USER_KEY) || null;
       let isRefreshingToken = false;
+      let driveSyncFileId = null;
 
       // DOM Elements
       const workspaceGrid = document.getElementById('workspaceGrid');
@@ -634,7 +642,10 @@
       const quickNotes = document.getElementById('quickNotes');
       const noteStatus = document.getElementById('noteStatus');
 
-      let tasks = [];
+      let tasks = [
+        { id: crypto.randomUUID(), text: 'Plan your top 3 priorities', completed: false },
+        { id: crypto.randomUUID(), text: 'Review inbox feed and clean emails', completed: false }
+      ];
       let currentFilter = 'all';
 
       // ==========================================
@@ -649,7 +660,6 @@
 
         cards.forEach(card => {
           card.addEventListener('dragstart', (e) => {
-            // Prevent dragging from within inputs, textareas, or buttons
             if (['INPUT', 'TEXTAREA', 'BUTTON', 'A'].includes(e.target.tagName)) {
               e.preventDefault();
               return;
@@ -740,7 +750,7 @@
         try {
           tokenClient = google.accounts.oauth2.initTokenClient({
             client_id: CLIENT_ID,
-            scope: GMAIL_SCOPE,
+            scope: OAUTH_SCOPES,
             callback: async (resp) => {
               if (resp.error) {
                 console.error('Google OAuth Error Response:', resp);
@@ -766,6 +776,8 @@
               setLoggedInUI(currentUserEmail);
               isRefreshingToken = false;
 
+              // Synchronize from Drive AppData & fetch Gmail
+              await syncFromDriveAppData();
               fetchRecentEmails();
             }
           });
@@ -774,6 +786,7 @@
 
           if (accessToken) {
             setLoggedInUI(currentUserEmail);
+            syncFromDriveAppData();
             fetchRecentEmails();
           }
         } catch (err) {
@@ -792,9 +805,9 @@
             const data = await res.json();
             currentUserEmail = data.emailAddress || 'User';
             localStorage.setItem(SESSION_USER_KEY, currentUserEmail);
-            loadUserTasks();
-          } else {
-            console.warn('Profile fetch returned non-200 status:', res.status);
+            if (currentUserEmail) {
+              plannerTitle.textContent = `Tasks (${currentUserEmail})`;
+            }
           }
         } catch (e) {
           console.error('Network failure fetching user profile:', e);
@@ -826,6 +839,8 @@
         signOutBtn.style.display = 'none';
         
         plannerTitle.textContent = 'Daily Planner';
+        noteStatus.textContent = 'Local storage';
+        noteStatus.className = 'card-status';
         emailFeed.innerHTML = '<div class="empty-feed">Click "Connect Gmail" above to link your account and view recent emails.</div>';
       }
 
@@ -848,8 +863,11 @@
         tokenClient.requestAccessToken({ prompt: 'consent' });
       });
 
-      refreshBtn.addEventListener('click', () => {
-        if (accessToken) fetchRecentEmails();
+      refreshBtn.addEventListener('click', async () => {
+        if (accessToken) {
+          await syncFromDriveAppData();
+          fetchRecentEmails();
+        }
       });
 
       signOutBtn.addEventListener('click', () => {
@@ -864,9 +882,10 @@
         localStorage.removeItem(SESSION_USER_KEY);
         accessToken = null;
         currentUserEmail = null;
+        driveSyncFileId = null;
 
         setLoggedOutUI();
-        loadUserTasks();
+        renderTasks();
       });
 
       function silentlyRenewToken() {
@@ -878,6 +897,136 @@
           console.error('Silent token renewal failed:', err);
           isRefreshingToken = false;
         }
+      }
+
+      // ==========================================
+      // GOOGLE DRIVE APPDATA CLOUD SYNCHRONIZATION
+      // ==========================================
+      async function syncFromDriveAppData() {
+        if (!accessToken) return;
+        setSyncStatus('Syncing...', 'syncing');
+
+        try {
+          // 1. Locate existing file in AppData space
+          const query = encodeURIComponent(`name='${CLOUD_SYNC_FILENAME}' and 'appDataFolder' in parents and trashed=false`);
+          const searchRes = await fetch(`https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&q=${query}&fields=files(id,name)`, {
+            headers: { Authorization: `Bearer ${accessToken}` }
+          });
+
+          if (searchRes.status === 401) {
+            silentlyRenewToken();
+            return;
+          }
+
+          const searchData = await searchRes.json();
+          let fileId = searchData.files && searchData.files.length > 0 ? searchData.files[0].id : null;
+
+          if (fileId) {
+            driveSyncFileId = fileId;
+            // 2. Download remote contents
+            const contentRes = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
+              headers: { Authorization: `Bearer ${accessToken}` }
+            });
+
+            if (contentRes.ok) {
+              const cloudData = await contentRes.json();
+              if (cloudData) {
+                if (Array.isArray(cloudData.tasks)) {
+                  tasks = cloudData.tasks;
+                  renderTasks();
+                }
+                if (typeof cloudData.scratchpad === 'string') {
+                  quickNotes.value = cloudData.scratchpad;
+                }
+              }
+              setSyncStatus('Synced with Google Cloud', 'saved');
+            }
+          } else {
+            // 3. Create initial cloud data file in appDataFolder
+            await createInitialDriveAppDataFile();
+          }
+        } catch (err) {
+          console.error('Drive AppData sync error:', err);
+          setSyncStatus('Cloud sync error', 'error');
+        }
+      }
+
+      async function createInitialDriveAppDataFile() {
+        try {
+          const initialPayload = {
+            tasks: tasks,
+            scratchpad: quickNotes.value || ''
+          };
+
+          const metadata = {
+            name: CLOUD_SYNC_FILENAME,
+            parents: ['appDataFolder']
+          };
+
+          const form = new FormData();
+          form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+          form.append('file', new Blob([JSON.stringify(initialPayload)], { type: 'application/json' }));
+
+          const createRes = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${accessToken}` },
+            body: form
+          });
+
+          if (createRes.ok) {
+            const fileData = await createRes.json();
+            driveSyncFileId = fileData.id;
+            setSyncStatus('Synced with Google Cloud', 'saved');
+          }
+        } catch (e) {
+          console.error('Failed to create Drive AppData file:', e);
+          setSyncStatus('Sync init failed', 'error');
+        }
+      }
+
+      async function saveToDriveAppData() {
+        if (!accessToken) return;
+        setSyncStatus('Syncing...', 'syncing');
+
+        if (!driveSyncFileId) {
+          await createInitialDriveAppDataFile();
+          return;
+        }
+
+        try {
+          const payload = {
+            tasks: tasks,
+            scratchpad: quickNotes.value
+          };
+
+          const patchRes = await fetch(`https://www.googleapis.com/upload/drive/v3/files/${driveSyncFileId}?uploadType=media`, {
+            method: 'PATCH',
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+          });
+
+          if (patchRes.status === 401) {
+            silentlyRenewToken();
+            return;
+          }
+
+          if (patchRes.ok) {
+            setSyncStatus('Synced with Google Cloud', 'saved');
+          } else {
+            throw new Error(`Upload error ${patchRes.status}`);
+          }
+        } catch (err) {
+          console.error('Drive sync upload error:', err);
+          setSyncStatus('Cloud sync failed', 'error');
+        }
+      }
+
+      function setSyncStatus(text, statusClass) {
+        noteStatus.textContent = text;
+        noteStatus.className = `card-status ${statusClass || ''}`;
       }
 
       // ==========================================
@@ -980,36 +1129,8 @@
       }
 
       // ==========================================
-      // USER-SPECIFIC TASK STORAGE LOGIC
+      // TASK PLANNER OPERATIONS
       // ==========================================
-      function getTaskStorageKey() {
-        return currentUserEmail ? `tasks_${currentUserEmail.toLowerCase()}` : 'tasks_guest';
-      }
-
-      function loadUserTasks() {
-        const key = getTaskStorageKey();
-        try {
-          const saved = localStorage.getItem(key);
-          if (saved) {
-            tasks = JSON.parse(saved);
-          } else {
-            tasks = [
-              { id: crypto.randomUUID(), text: 'Plan your top 3 priorities', completed: false },
-              { id: crypto.randomUUID(), text: 'Review inbox feed and clean emails', completed: false }
-            ];
-            saveUserTasks();
-          }
-        } catch (error) {
-          console.error('Error parsing stored tasks:', error);
-          tasks = [];
-        }
-        renderTasks();
-      }
-
-      function saveUserTasks() {
-        localStorage.setItem(getTaskStorageKey(), JSON.stringify(tasks));
-      }
-
       function getFilteredTasks() {
         if (currentFilter === 'active') return tasks.filter(t => !t.completed);
         if (currentFilter === 'completed') return tasks.filter(t => t.completed);
@@ -1071,20 +1192,20 @@
         tasks.unshift({ id: crypto.randomUUID(), text: value, completed: false });
         taskInput.value = '';
         taskInput.focus();
-        saveUserTasks();
         renderTasks();
+        saveToDriveAppData();
       }
 
       function toggleTask(taskId) {
         tasks = tasks.map(t => t.id === taskId ? { ...t, completed: !t.completed } : t);
-        saveUserTasks();
         renderTasks();
+        saveToDriveAppData();
       }
 
       function deleteTask(taskId) {
         tasks = tasks.filter(t => t.id !== taskId);
-        saveUserTasks();
         renderTasks();
+        saveToDriveAppData();
       }
 
       addTaskBtn.addEventListener('click', addTask);
@@ -1099,24 +1220,27 @@
       });
 
       // ==========================================
-      // SCRATCHPAD AUTO-SAVE & PAGE INITIALIZATION
+      // SCRATCHPAD INPUT DEBOUNCE & CLOUD SYNC
       // ==========================================
-      quickNotes.value = localStorage.getItem(NOTE_KEY) || '';
-
-      let noteTimeout;
+      let noteDebounceTimer = null;
       quickNotes.addEventListener('input', () => {
-        noteStatus.textContent = 'Saving...';
-        noteStatus.classList.remove('saved');
-        clearTimeout(noteTimeout);
-        noteTimeout = setTimeout(() => {
-          localStorage.setItem(NOTE_KEY, quickNotes.value);
-          noteStatus.textContent = 'Saved';
-          noteStatus.classList.add('saved');
-        }, 350);
+        if (!accessToken) {
+          setSyncStatus('Local only (Connect Gmail to sync)', '');
+          return;
+        }
+        setSyncStatus('Typing...', 'syncing');
+        clearTimeout(noteDebounceTimer);
+        noteDebounceTimer = setTimeout(() => {
+          saveToDriveAppData();
+        }, 750);
       });
 
+      // ==========================================
+      // INITIALIZATION & PERIODIC SYNC INTERVAL
+      // ==========================================
       window.addEventListener('DOMContentLoaded', () => {
         initDragAndDrop();
+        renderTasks();
 
         if (accessToken) {
           setLoggedInUI(currentUserEmail);
@@ -1124,8 +1248,15 @@
           setLoggedOutUI();
         }
 
-        loadUserTasks();
         initGoogleAuth();
+
+        // 3-minute background cross-device refresh interval
+        setInterval(() => {
+          if (accessToken) {
+            syncFromDriveAppData();
+            fetchRecentEmails();
+          }
+        }, 180000);
       });
     </script>
   </body>
