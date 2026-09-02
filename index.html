@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>MGT daily Planner</title>
+    <title>MGT Daily Planner</title>
     <!-- Google Identity Services client script -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
@@ -97,7 +97,6 @@
         transform: translateY(-1px);
       }
 
-      /* Reorderable Workspace Grid */
       .workspace-grid {
         display: grid;
         grid-template-columns: 1.15fr 0.95fr 1.1fr;
@@ -304,6 +303,7 @@
         border: 1px solid rgba(56, 189, 248, 0.15);
         border-radius: 12px;
         padding: 12px 14px;
+        transition: transform 0.15s ease, opacity 0.15s ease, background 0.15s ease;
       }
 
       .task.completed { opacity: 0.65; }
@@ -354,6 +354,12 @@
         gap: 12px;
       }
 
+      .card-title-group {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
       .card-title {
         font-weight: 700;
         font-size: 1.05rem;
@@ -380,7 +386,9 @@
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
-        display: inline-block;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
       }
       .card-status.saved { 
         color: #a7f3d0; 
@@ -392,10 +400,27 @@
         border-color: rgba(250, 204, 21, 0.4);
         background: rgba(113, 63, 18, 0.35);
       }
-      .card-status.error {
-        color: #fecaca;
+      .card-status.error { 
+        color: #fecaca; 
         border-color: rgba(248, 113, 113, 0.4);
         background: rgba(127, 29, 29, 0.35);
+      }
+
+      /* Non-blocking Sync Pulse Indicator */
+      .sync-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--primary-2);
+        display: inline-block;
+      }
+      .syncing .sync-dot {
+        animation: pulse-dot 1s infinite alternate;
+        background: #facc15;
+      }
+      @keyframes pulse-dot {
+        from { opacity: 0.3; transform: scale(0.85); }
+        to { opacity: 1; transform: scale(1.15); }
       }
 
       .editor-area {
@@ -432,7 +457,6 @@
         gap: 10px;
       }
 
-      /* Custom Dark Scrollbars */
       .feed-container::-webkit-scrollbar,
       .list::-webkit-scrollbar,
       .notepad-area::-webkit-scrollbar {
@@ -466,7 +490,6 @@
         scrollbar-color: rgba(56, 189, 248, 0.28) rgba(8, 18, 33, 0.5);
       }
 
-      /* Clickable Email Item Styling */
       .email-item {
         background: rgba(15, 35, 61, 0.7);
         border: 1px solid rgba(56, 189, 248, 0.15);
@@ -524,7 +547,7 @@
     <main class="app">
       <header class="header">
         <div>
-          <h1>MGT daily Planner</h1>
+          <h1>MGT Daily Planner</h1>
           <div class="subtitle">Keep track of your priorities, quick notes, and live inbox feed.</div>
         </div>
 
@@ -544,7 +567,9 @@
           </div>
 
           <div class="card-header">
-            <span id="plannerTitle" class="card-title">Daily Planner</span>
+            <div class="card-title-group">
+              <span id="plannerTitle" class="card-title">Daily Planner</span>
+            </div>
             <span id="taskStats" class="stats">0 tasks</span>
           </div>
 
@@ -581,7 +606,7 @@
           ></textarea>
         </aside>
 
-        <!-- 3. Live Gmail Feed with Aligned Header & Resilient GIS Auth -->
+        <!-- 3. Live Gmail Feed -->
         <section id="card-gmail" class="column-card" draggable="true" data-card-id="gmail">
           <div class="card-drag-handle" title="Drag to reorder column">
             <span class="drag-dots"></span>
@@ -606,16 +631,17 @@
 
     <script>
       // ==========================================
-      // CONSTANTS & CLOUD STORAGE CONFIGURATION
+      // CONSTANTS & STORAGE CONFIGURATION
       // ==========================================
       const CLIENT_ID = '912308604808-p1nkq6drca0mvt60ipp9u1bpj9bh5iud.apps.googleusercontent.com';
-      // Added Google Drive AppData Scope for cross-device cloud sync
       const OAUTH_SCOPES = 'https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/drive.appdata';
       const CLOUD_SYNC_FILENAME = 'mgt_dashboard_data.json';
       
       const SESSION_TOKEN_KEY = 'mgt_session_access_token';
       const SESSION_USER_KEY = 'mgt_session_user_email';
       const COLUMN_ORDER_KEY = 'mgt_column_order';
+      const LOCAL_TASKS_KEY = 'mgt_local_tasks';
+      const LOCAL_NOTES_KEY = 'mgt_local_notes';
 
       let tokenClient = null;
       let isGisReady = false;
@@ -623,6 +649,10 @@
       let currentUserEmail = localStorage.getItem(SESSION_USER_KEY) || null;
       let isRefreshingToken = false;
       let driveSyncFileId = null;
+      let lastKnownDriveModifiedTime = null;
+      let isSaveInFlight = false;
+      let pendingSaveQueued = false;
+      let silentRefreshTimer = null;
 
       // DOM Elements
       const workspaceGrid = document.getElementById('workspaceGrid');
@@ -642,10 +672,19 @@
       const quickNotes = document.getElementById('quickNotes');
       const noteStatus = document.getElementById('noteStatus');
 
-      let tasks = [
-        { id: crypto.randomUUID(), text: 'Plan your top 3 priorities', completed: false },
-        { id: crypto.randomUUID(), text: 'Review inbox feed and clean emails', completed: false }
-      ];
+      // Local State Hydration
+      let tasks = [];
+      try {
+        tasks = JSON.parse(localStorage.getItem(LOCAL_TASKS_KEY)) || [
+          { id: crypto.randomUUID(), text: 'Plan your top 3 priorities', completed: false },
+          { id: crypto.randomUUID(), text: 'Review inbox feed and clean emails', completed: false }
+        ];
+      } catch {
+        tasks = [
+          { id: crypto.randomUUID(), text: 'Plan your top 3 priorities', completed: false }
+        ];
+      }
+      quickNotes.value = localStorage.getItem(LOCAL_NOTES_KEY) || '';
       let currentFilter = 'all';
 
       // ==========================================
@@ -739,7 +778,7 @@
       }
 
       // ==========================================
-      // GOOGLE AUTHENTICATION & GIS HANDLING
+      // GOOGLE AUTH & SILENT SESSION MANAGEMENT
       // ==========================================
       function initGoogleAuth() {
         if (typeof google === 'undefined' || !google.accounts || !google.accounts.oauth2) {
@@ -751,33 +790,29 @@
           tokenClient = google.accounts.oauth2.initTokenClient({
             client_id: CLIENT_ID,
             scope: OAUTH_SCOPES,
+            prompt: '',
             callback: async (resp) => {
               if (resp.error) {
-                console.error('Google OAuth Error Response:', resp);
-                authStatus.textContent = 'Auth error';
-                authStatus.className = 'card-status error';
-                emailFeed.innerHTML = `<div class="empty-feed" style="color:var(--danger)">Authorization failed: ${escapeHtml(resp.error_description || resp.error)}</div>`;
+                console.warn('Google OAuth Notice:', resp);
                 isRefreshingToken = false;
                 return;
               }
 
               if (!resp.access_token) {
-                console.error('No access token received in OAuth response:', resp);
-                authStatus.textContent = 'Token missing';
-                authStatus.className = 'card-status error';
                 isRefreshingToken = false;
                 return;
               }
 
               accessToken = resp.access_token;
               localStorage.setItem(SESSION_TOKEN_KEY, accessToken);
+              isRefreshingToken = false;
+
+              scheduleSilentRefresh();
 
               await fetchUserProfileEmail();
               setLoggedInUI(currentUserEmail);
-              isRefreshingToken = false;
 
-              // Synchronize from Drive AppData & fetch Gmail
-              await syncFromDriveAppData();
+              await syncFromDriveAppData(false);
               fetchRecentEmails();
             }
           });
@@ -786,13 +821,32 @@
 
           if (accessToken) {
             setLoggedInUI(currentUserEmail);
-            syncFromDriveAppData();
+            scheduleSilentRefresh();
+            silentlyRenewToken();
+            syncFromDriveAppData(false);
             fetchRecentEmails();
           }
         } catch (err) {
           console.error('Error initializing Google Identity Services:', err);
-          authStatus.textContent = 'Init error';
-          authStatus.className = 'card-status error';
+        }
+      }
+
+      function scheduleSilentRefresh() {
+        if (silentRefreshTimer) clearTimeout(silentRefreshTimer);
+        // Refresh token silently at 45 minutes
+        silentRefreshTimer = setTimeout(() => {
+          silentlyRenewToken();
+        }, 45 * 60 * 1000);
+      }
+
+      function silentlyRenewToken() {
+        if (isRefreshingToken || !tokenClient) return;
+        isRefreshingToken = true;
+        try {
+          tokenClient.requestAccessToken({ prompt: '' });
+        } catch (err) {
+          console.warn('Silent token renewal failed:', err);
+          isRefreshingToken = false;
         }
       }
 
@@ -808,6 +862,8 @@
             if (currentUserEmail) {
               plannerTitle.textContent = `Tasks (${currentUserEmail})`;
             }
+          } else if (res.status === 401) {
+            silentlyRenewToken();
           }
         } catch (e) {
           console.error('Network failure fetching user profile:', e);
@@ -839,8 +895,7 @@
         signOutBtn.style.display = 'none';
         
         plannerTitle.textContent = 'Daily Planner';
-        noteStatus.textContent = 'Local storage';
-        noteStatus.className = 'card-status';
+        setSyncStatus('Local storage', '');
         emailFeed.innerHTML = '<div class="empty-feed">Click "Connect Gmail" above to link your account and view recent emails.</div>';
       }
 
@@ -854,7 +909,6 @@
             } else {
               authStatus.textContent = 'Failed to load GIS';
               authStatus.className = 'card-status error';
-              console.error('Google Identity Services script failed to initialize in time.');
             }
           }, 600);
           return;
@@ -865,17 +919,18 @@
 
       refreshBtn.addEventListener('click', async () => {
         if (accessToken) {
-          await syncFromDriveAppData();
+          await syncFromDriveAppData(true);
           fetchRecentEmails();
         }
       });
 
       signOutBtn.addEventListener('click', () => {
+        if (silentRefreshTimer) clearTimeout(silentRefreshTimer);
         if (accessToken && typeof google !== 'undefined' && google.accounts?.oauth2) {
           try {
             google.accounts.oauth2.revoke(accessToken, () => {});
           } catch (e) {
-            console.warn('Token revocation warning:', e);
+            console.warn('Token revocation notice:', e);
           }
         }
         localStorage.removeItem(SESSION_TOKEN_KEY);
@@ -883,120 +938,47 @@
         accessToken = null;
         currentUserEmail = null;
         driveSyncFileId = null;
+        lastKnownDriveModifiedTime = null;
 
         setLoggedOutUI();
         renderTasks();
       });
 
-      function silentlyRenewToken() {
-        if (isRefreshingToken || !tokenClient) return;
-        isRefreshingToken = true;
-        try {
-          tokenClient.requestAccessToken({ prompt: '' });
-        } catch (err) {
-          console.error('Silent token renewal failed:', err);
-          isRefreshingToken = false;
-        }
+      function setSyncStatus(text, statusClass) {
+        noteStatus.className = `card-status ${statusClass || ''}`;
+        noteStatus.innerHTML = `<span class="sync-dot"></span><span>${escapeHtml(text)}</span>`;
       }
 
       // ==========================================
-      // GOOGLE DRIVE APPDATA CLOUD SYNCHRONIZATION
+      // OPTIMISTIC DRIVE APPDATA ENGINE & POLLING
       // ==========================================
-      async function syncFromDriveAppData() {
-        if (!accessToken) return;
-        setSyncStatus('Syncing...', 'syncing');
-
-        try {
-          // 1. Locate existing file in AppData space
-          const query = encodeURIComponent(`name='${CLOUD_SYNC_FILENAME}' and 'appDataFolder' in parents and trashed=false`);
-          const searchRes = await fetch(`https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&q=${query}&fields=files(id,name)`, {
-            headers: { Authorization: `Bearer ${accessToken}` }
-          });
-
-          if (searchRes.status === 401) {
-            silentlyRenewToken();
-            return;
-          }
-
-          const searchData = await searchRes.json();
-          let fileId = searchData.files && searchData.files.length > 0 ? searchData.files[0].id : null;
-
-          if (fileId) {
-            driveSyncFileId = fileId;
-            // 2. Download remote contents
-            const contentRes = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
-              headers: { Authorization: `Bearer ${accessToken}` }
-            });
-
-            if (contentRes.ok) {
-              const cloudData = await contentRes.json();
-              if (cloudData) {
-                if (Array.isArray(cloudData.tasks)) {
-                  tasks = cloudData.tasks;
-                  renderTasks();
-                }
-                if (typeof cloudData.scratchpad === 'string') {
-                  quickNotes.value = cloudData.scratchpad;
-                }
-              }
-              setSyncStatus('Synced with Google Cloud', 'saved');
-            }
-          } else {
-            // 3. Create initial cloud data file in appDataFolder
-            await createInitialDriveAppDataFile();
-          }
-        } catch (err) {
-          console.error('Drive AppData sync error:', err);
-          setSyncStatus('Cloud sync error', 'error');
+      function triggerBackgroundSync() {
+        if (!accessToken) {
+          setSyncStatus('Local only', '');
+          return;
         }
+
+        if (isSaveInFlight) {
+          pendingSaveQueued = true;
+          return;
+        }
+
+        executeSavePatch();
       }
 
-      async function createInitialDriveAppDataFile() {
-        try {
-          const initialPayload = {
-            tasks: tasks,
-            scratchpad: quickNotes.value || ''
-          };
-
-          const metadata = {
-            name: CLOUD_SYNC_FILENAME,
-            parents: ['appDataFolder']
-          };
-
-          const form = new FormData();
-          form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
-          form.append('file', new Blob([JSON.stringify(initialPayload)], { type: 'application/json' }));
-
-          const createRes = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
-            method: 'POST',
-            headers: { Authorization: `Bearer ${accessToken}` },
-            body: form
-          });
-
-          if (createRes.ok) {
-            const fileData = await createRes.json();
-            driveSyncFileId = fileData.id;
-            setSyncStatus('Synced with Google Cloud', 'saved');
-          }
-        } catch (e) {
-          console.error('Failed to create Drive AppData file:', e);
-          setSyncStatus('Sync init failed', 'error');
-        }
-      }
-
-      async function saveToDriveAppData() {
-        if (!accessToken) return;
-        setSyncStatus('Syncing...', 'syncing');
+      async function executeSavePatch() {
+        isSaveInFlight = true;
+        setSyncStatus('Saving...', 'syncing');
 
         if (!driveSyncFileId) {
-          await createInitialDriveAppDataFile();
-          return;
+          await locateOrCreateDriveFile();
         }
 
         try {
           const payload = {
             tasks: tasks,
-            scratchpad: quickNotes.value
+            scratchpad: quickNotes.value,
+            clientTimestamp: Date.now()
           };
 
           const patchRes = await fetch(`https://www.googleapis.com/upload/drive/v3/files/${driveSyncFileId}?uploadType=media`, {
@@ -1010,23 +992,156 @@
 
           if (patchRes.status === 401) {
             silentlyRenewToken();
+            isSaveInFlight = false;
             return;
           }
 
           if (patchRes.ok) {
-            setSyncStatus('Synced with Google Cloud', 'saved');
+            // Update modified time cache from response
+            const meta = await patchRes.json().catch(() => null);
+            if (meta && meta.modifiedTime) {
+              lastKnownDriveModifiedTime = meta.modifiedTime;
+            }
+            setSyncStatus('Synced', 'saved');
           } else {
             throw new Error(`Upload error ${patchRes.status}`);
           }
         } catch (err) {
-          console.error('Drive sync upload error:', err);
-          setSyncStatus('Cloud sync failed', 'error');
+          console.error('Drive save error:', err);
+          setSyncStatus('Sync error (Retrying locally)', 'error');
+        } finally {
+          isSaveInFlight = false;
+          if (pendingSaveQueued) {
+            pendingSaveQueued = false;
+            executeSavePatch();
+          }
         }
       }
 
-      function setSyncStatus(text, statusClass) {
-        noteStatus.textContent = text;
-        noteStatus.className = `card-status ${statusClass || ''}`;
+      async function locateOrCreateDriveFile() {
+        try {
+          const query = encodeURIComponent(`name='${CLOUD_SYNC_FILENAME}' and 'appDataFolder' in parents and trashed=false`);
+          const searchRes = await fetch(`https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&q=${query}&fields=files(id,name,modifiedTime)`, {
+            headers: { Authorization: `Bearer ${accessToken}` }
+          });
+
+          if (searchRes.status === 401) {
+            silentlyRenewToken();
+            return;
+          }
+
+          const searchData = await searchRes.json();
+          if (searchData.files && searchData.files.length > 0) {
+            driveSyncFileId = searchData.files[0].id;
+            lastKnownDriveModifiedTime = searchData.files[0].modifiedTime;
+          } else {
+            const initialPayload = {
+              tasks: tasks,
+              scratchpad: quickNotes.value || '',
+              clientTimestamp: Date.now()
+            };
+
+            const metadata = {
+              name: CLOUD_SYNC_FILENAME,
+              parents: ['appDataFolder']
+            };
+
+            const form = new FormData();
+            form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+            form.append('file', new Blob([JSON.stringify(initialPayload)], { type: 'application/json' }));
+
+            const createRes = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,modifiedTime', {
+              method: 'POST',
+              headers: { Authorization: `Bearer ${accessToken}` },
+              body: form
+            });
+
+            if (createRes.ok) {
+              const fileData = await createRes.json();
+              driveSyncFileId = fileData.id;
+              lastKnownDriveModifiedTime = fileData.modifiedTime;
+            }
+          }
+        } catch (err) {
+          console.error('Error finding/creating Drive file:', err);
+        }
+      }
+
+      // Non-blocking metadata poll: checks if remote file has modifiedTime > lastKnownDriveModifiedTime
+      async function pollDriveMetadata() {
+        if (!accessToken || isSaveInFlight) return;
+
+        if (!driveSyncFileId) {
+          await locateOrCreateDriveFile();
+          return;
+        }
+
+        try {
+          const metaRes = await fetch(`https://www.googleapis.com/drive/v3/files/${driveSyncFileId}?fields=id,modifiedTime`, {
+            headers: { Authorization: `Bearer ${accessToken}` }
+          });
+
+          if (metaRes.status === 401) {
+            silentlyRenewToken();
+            return;
+          }
+
+          if (metaRes.ok) {
+            const meta = await metaRes.json();
+            if (meta.modifiedTime && meta.modifiedTime !== lastKnownDriveModifiedTime) {
+              // Remote file changed on another device: pull changes without blocking UI
+              await pullRemoteFileContents(meta.modifiedTime);
+            }
+          }
+        } catch (err) {
+          console.warn('Drive metadata poll notice:', err);
+        }
+      }
+
+      async function pullRemoteFileContents(newModifiedTime) {
+        if (!accessToken || !driveSyncFileId) return;
+
+        try {
+          const contentRes = await fetch(`https://www.googleapis.com/drive/v3/files/${driveSyncFileId}?alt=media`, {
+            headers: { Authorization: `Bearer ${accessToken}` }
+          });
+
+          if (contentRes.ok) {
+            const cloudData = await contentRes.json();
+            lastKnownDriveModifiedTime = newModifiedTime;
+
+            if (cloudData) {
+              if (Array.isArray(cloudData.tasks)) {
+                tasks = cloudData.tasks;
+                localStorage.setItem(LOCAL_TASKS_KEY, JSON.stringify(tasks));
+                renderTasks();
+              }
+              // Only overwrite Scratchpad if user is not actively typing in it
+              if (typeof cloudData.scratchpad === 'string' && document.activeElement !== quickNotes) {
+                quickNotes.value = cloudData.scratchpad;
+                localStorage.setItem(LOCAL_NOTES_KEY, cloudData.scratchpad);
+              }
+            }
+            setSyncStatus('Synced', 'saved');
+          }
+        } catch (err) {
+          console.error('Failed to pull remote file contents:', err);
+        }
+      }
+
+      async function syncFromDriveAppData(force) {
+        if (!accessToken) return;
+        setSyncStatus('Checking...', 'syncing');
+
+        if (!driveSyncFileId) {
+          await locateOrCreateDriveFile();
+        }
+
+        if (force || !lastKnownDriveModifiedTime) {
+          await pullRemoteFileContents(lastKnownDriveModifiedTime);
+        } else {
+          await pollDriveMetadata();
+        }
       }
 
       // ==========================================
@@ -1037,7 +1152,7 @@
         emailFeed.innerHTML = '<div class="empty-feed">Fetching inbox messages...</div>';
 
         try {
-          const listRes = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages?maxResults=50', {
+          const listRes = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages?maxResults=25', {
             headers: { Authorization: `Bearer ${accessToken}` }
           });
 
@@ -1129,7 +1244,7 @@
       }
 
       // ==========================================
-      // TASK PLANNER OPERATIONS
+      // OPTIMISTIC TASK PLANNER
       // ==========================================
       function getFilteredTasks() {
         if (currentFilter === 'active') return tasks.filter(t => !t.completed);
@@ -1150,6 +1265,9 @@
         if (filtered.length === 0) {
           const empty = document.createElement('li');
           empty.className = 'empty';
+          empty.style.color = '#64748b';
+          empty.style.textAlign = 'center';
+          empty.style.padding = '20px';
           empty.textContent = currentFilter === 'all' ? 'No tasks yet.' : 'No tasks in this view.';
           taskList.appendChild(empty);
           updateStats();
@@ -1185,6 +1303,7 @@
         updateStats();
       }
 
+      // Optimistic Add
       function addTask() {
         const value = taskInput.value.trim();
         if (!value) return;
@@ -1192,20 +1311,29 @@
         tasks.unshift({ id: crypto.randomUUID(), text: value, completed: false });
         taskInput.value = '';
         taskInput.focus();
+
+        // Immediate Local & Visual Commit
+        localStorage.setItem(LOCAL_TASKS_KEY, JSON.stringify(tasks));
         renderTasks();
-        saveToDriveAppData();
+
+        // Non-blocking background sync
+        triggerBackgroundSync();
       }
 
+      // Optimistic Toggle
       function toggleTask(taskId) {
         tasks = tasks.map(t => t.id === taskId ? { ...t, completed: !t.completed } : t);
+        localStorage.setItem(LOCAL_TASKS_KEY, JSON.stringify(tasks));
         renderTasks();
-        saveToDriveAppData();
+        triggerBackgroundSync();
       }
 
+      // Optimistic Delete
       function deleteTask(taskId) {
         tasks = tasks.filter(t => t.id !== taskId);
+        localStorage.setItem(LOCAL_TASKS_KEY, JSON.stringify(tasks));
         renderTasks();
-        saveToDriveAppData();
+        triggerBackgroundSync();
       }
 
       addTaskBtn.addEventListener('click', addTask);
@@ -1220,23 +1348,29 @@
       });
 
       // ==========================================
-      // SCRATCHPAD INPUT DEBOUNCE & CLOUD SYNC
+      // 500MS SCRATCHPAD DEBOUNCE & STATUS PIPELINE
       // ==========================================
       let noteDebounceTimer = null;
       quickNotes.addEventListener('input', () => {
+        // Instant Local Persistence
+        localStorage.setItem(LOCAL_NOTES_KEY, quickNotes.value);
+
         if (!accessToken) {
-          setSyncStatus('Local only (Connect Gmail to sync)', '');
+          setSyncStatus('Local storage', '');
           return;
         }
-        setSyncStatus('Typing...', 'syncing');
+
+        setSyncStatus('Saving...', 'syncing');
         clearTimeout(noteDebounceTimer);
+
+        // Responsive 500ms debounce
         noteDebounceTimer = setTimeout(() => {
-          saveToDriveAppData();
-        }, 750);
+          triggerBackgroundSync();
+        }, 500);
       });
 
       // ==========================================
-      // INITIALIZATION & PERIODIC SYNC INTERVAL
+      // INITIALIZATION & BACKGROUND POLLING
       // ==========================================
       window.addEventListener('DOMContentLoaded', () => {
         initDragAndDrop();
@@ -1244,16 +1378,23 @@
 
         if (accessToken) {
           setLoggedInUI(currentUserEmail);
+          setSyncStatus('Ready', 'saved');
         } else {
           setLoggedOutUI();
         }
 
         initGoogleAuth();
 
-        // 3-minute background cross-device refresh interval
+        // Lightweight modifiedTime check every 35 seconds (pulls changes from other devices)
+        setInterval(() => {
+          if (accessToken && !isSaveInFlight) {
+            pollDriveMetadata();
+          }
+        }, 35000);
+
+        // Refresh Gmail feed every 3 minutes
         setInterval(() => {
           if (accessToken) {
-            syncFromDriveAppData();
             fetchRecentEmails();
           }
         }, 180000);
