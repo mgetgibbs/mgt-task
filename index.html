@@ -303,7 +303,7 @@
         border: 1px solid rgba(56, 189, 248, 0.15);
         border-radius: 12px;
         padding: 12px 14px;
-        transition: transform 0.15s ease, opacity 0.15s ease, background 0.15s ease;
+        transition: transform 0.15s ease, opacity 0.15s ease;
       }
 
       .task.completed { opacity: 0.65; }
@@ -354,12 +354,6 @@
         gap: 12px;
       }
 
-      .card-title-group {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-      }
-
       .card-title {
         font-weight: 700;
         font-size: 1.05rem;
@@ -382,7 +376,7 @@
         border: 1px solid rgba(56, 189, 248, 0.18);
         border-radius: 8px;
         padding: 6px 10px;
-        max-width: 220px;
+        max-width: 250px;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -406,7 +400,6 @@
         background: rgba(127, 29, 29, 0.35);
       }
 
-      /* Non-blocking Sync Pulse Indicator */
       .sync-dot {
         width: 7px;
         height: 7px;
@@ -567,9 +560,7 @@
           </div>
 
           <div class="card-header">
-            <div class="card-title-group">
-              <span id="plannerTitle" class="card-title">Daily Planner</span>
-            </div>
+            <span id="plannerTitle" class="card-title">Daily Planner</span>
             <span id="taskStats" class="stats">0 tasks</span>
           </div>
 
@@ -631,9 +622,10 @@
 
     <script>
       // ==========================================
-      // CONSTANTS & STORAGE CONFIGURATION
+      // CONSTANTS & CLOUD STORAGE CONFIGURATION
       // ==========================================
       const CLIENT_ID = '912308604808-p1nkq6drca0mvt60ipp9u1bpj9bh5iud.apps.googleusercontent.com';
+      // Verified scopes for Gmail & AppData space
       const OAUTH_SCOPES = 'https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/drive.appdata';
       const CLOUD_SYNC_FILENAME = 'mgt_dashboard_data.json';
       
@@ -672,7 +664,7 @@
       const quickNotes = document.getElementById('quickNotes');
       const noteStatus = document.getElementById('noteStatus');
 
-      // Local State Hydration
+      // State Hydration from local cache
       let tasks = [];
       try {
         tasks = JSON.parse(localStorage.getItem(LOCAL_TASKS_KEY)) || [
@@ -793,7 +785,7 @@
             prompt: '',
             callback: async (resp) => {
               if (resp.error) {
-                console.warn('Google OAuth Notice:', resp);
+                console.warn('OAuth Response Notice:', resp);
                 isRefreshingToken = false;
                 return;
               }
@@ -812,7 +804,8 @@
               await fetchUserProfileEmail();
               setLoggedInUI(currentUserEmail);
 
-              await syncFromDriveAppData(false);
+              // Initial load sync across devices
+              await syncFromDriveAppData(true);
               fetchRecentEmails();
             }
           });
@@ -823,7 +816,7 @@
             setLoggedInUI(currentUserEmail);
             scheduleSilentRefresh();
             silentlyRenewToken();
-            syncFromDriveAppData(false);
+            syncFromDriveAppData(true);
             fetchRecentEmails();
           }
         } catch (err) {
@@ -919,8 +912,9 @@
 
       refreshBtn.addEventListener('click', async () => {
         if (accessToken) {
+          setSyncStatus('Refreshing...', 'syncing');
           await syncFromDriveAppData(true);
-          fetchRecentEmails();
+          await fetchRecentEmails();
         }
       });
 
@@ -950,11 +944,11 @@
       }
 
       // ==========================================
-      // OPTIMISTIC DRIVE APPDATA ENGINE & POLLING
+      // ROBUST MULTIPART DRIVE APPDATA ENGINE
       // ==========================================
       function triggerBackgroundSync() {
         if (!accessToken) {
-          setSyncStatus('Local only', '');
+          setSyncStatus('Local storage', '');
           return;
         }
 
@@ -971,7 +965,11 @@
         setSyncStatus('Saving...', 'syncing');
 
         if (!driveSyncFileId) {
-          await locateOrCreateDriveFile();
+          const found = await locateOrCreateDriveFile();
+          if (!found) {
+            isSaveInFlight = false;
+            return;
+          }
         }
 
         try {
@@ -991,24 +989,37 @@
           });
 
           if (patchRes.status === 401) {
+            setSyncStatus('Sync Error: 401', 'error');
             silentlyRenewToken();
             isSaveInFlight = false;
             return;
           }
 
-          if (patchRes.ok) {
-            // Update modified time cache from response
-            const meta = await patchRes.json().catch(() => null);
-            if (meta && meta.modifiedTime) {
-              lastKnownDriveModifiedTime = meta.modifiedTime;
-            }
-            setSyncStatus('Synced', 'saved');
-          } else {
-            throw new Error(`Upload error ${patchRes.status}`);
+          if (patchRes.status === 404) {
+            console.warn('Drive file ID not found (404). Recreating...');
+            driveSyncFileId = null;
+            await locateOrCreateDriveFile();
+            isSaveInFlight = false;
+            triggerBackgroundSync();
+            return;
           }
+
+          if (!patchRes.ok) {
+            const errData = await patchRes.text();
+            console.error(`Drive save error HTTP ${patchRes.status}:`, errData);
+            setSyncStatus(`Sync Error: ${patchRes.status}`, 'error');
+            isSaveInFlight = false;
+            return;
+          }
+
+          const meta = await patchRes.json().catch(() => null);
+          if (meta && meta.modifiedTime) {
+            lastKnownDriveModifiedTime = meta.modifiedTime;
+          }
+          setSyncStatus('Synced', 'saved');
         } catch (err) {
-          console.error('Drive save error:', err);
-          setSyncStatus('Sync error (Retrying locally)', 'error');
+          console.error('Drive save exception:', err);
+          setSyncStatus('Sync Error: Network', 'error');
         } finally {
           isSaveInFlight = false;
           if (pendingSaveQueued) {
@@ -1019,6 +1030,8 @@
       }
 
       async function locateOrCreateDriveFile() {
+        if (!accessToken) return false;
+
         try {
           const query = encodeURIComponent(`name='${CLOUD_SYNC_FILENAME}' and 'appDataFolder' in parents and trashed=false`);
           const searchRes = await fetch(`https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&q=${query}&fields=files(id,name,modifiedTime)`, {
@@ -1027,47 +1040,136 @@
 
           if (searchRes.status === 401) {
             silentlyRenewToken();
-            return;
+            setSyncStatus('Sync Error: 401', 'error');
+            return false;
+          }
+
+          if (!searchRes.ok) {
+            const errData = await searchRes.text();
+            console.error(`Drive search error HTTP ${searchRes.status}:`, errData);
+            setSyncStatus(`Sync Error: ${searchRes.status}`, 'error');
+            return false;
           }
 
           const searchData = await searchRes.json();
           if (searchData.files && searchData.files.length > 0) {
             driveSyncFileId = searchData.files[0].id;
             lastKnownDriveModifiedTime = searchData.files[0].modifiedTime;
-          } else {
-            const initialPayload = {
-              tasks: tasks,
-              scratchpad: quickNotes.value || '',
-              clientTimestamp: Date.now()
-            };
-
-            const metadata = {
-              name: CLOUD_SYNC_FILENAME,
-              parents: ['appDataFolder']
-            };
-
-            const form = new FormData();
-            form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
-            form.append('file', new Blob([JSON.stringify(initialPayload)], { type: 'application/json' }));
-
-            const createRes = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,modifiedTime', {
-              method: 'POST',
-              headers: { Authorization: `Bearer ${accessToken}` },
-              body: form
-            });
-
-            if (createRes.ok) {
-              const fileData = await createRes.json();
-              driveSyncFileId = fileData.id;
-              lastKnownDriveModifiedTime = fileData.modifiedTime;
-            }
+            return true;
           }
+
+          // Construct standards-compliant multipart boundary request
+          const boundary = '-------314159265358979323846';
+          const delimiter = `\r\n--${boundary}\r\n`;
+          const closeDelimiter = `\r\n--${boundary}--`;
+
+          const metadata = {
+            name: CLOUD_SYNC_FILENAME,
+            parents: ['appDataFolder']
+          };
+
+          const mediaData = {
+            tasks: tasks,
+            scratchpad: quickNotes.value || '',
+            clientTimestamp: Date.now()
+          };
+
+          const multipartRequestBody =
+            delimiter +
+            'Content-Type: application/json; charset=UTF-8\r\n\r\n' +
+            JSON.stringify(metadata) +
+            delimiter +
+            'Content-Type: application/json; charset=UTF-8\r\n\r\n' +
+            JSON.stringify(mediaData) +
+            closeDelimiter;
+
+          const createRes = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,modifiedTime', {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+              'Content-Type': `multipart/related; boundary=${boundary}`
+            },
+            body: multipartRequestBody
+          });
+
+          if (createRes.status === 401) {
+            silentlyRenewToken();
+            setSyncStatus('Sync Error: 401', 'error');
+            return false;
+          }
+
+          if (!createRes.ok) {
+            const errData = await createRes.text();
+            console.error(`Drive multipart create error HTTP ${createRes.status}:`, errData);
+            setSyncStatus(`Sync Error: ${createRes.status}`, 'error');
+            return false;
+          }
+
+          const fileData = await createRes.json();
+          driveSyncFileId = fileData.id;
+          lastKnownDriveModifiedTime = fileData.modifiedTime;
+          setSyncStatus('Synced', 'saved');
+          return true;
         } catch (err) {
-          console.error('Error finding/creating Drive file:', err);
+          console.error('Error locating or creating Drive file:', err);
+          setSyncStatus('Sync Error: Init', 'error');
+          return false;
         }
       }
 
-      // Non-blocking metadata poll: checks if remote file has modifiedTime > lastKnownDriveModifiedTime
+      async function pullRemoteFileContents(newModifiedTime) {
+        if (!accessToken || !driveSyncFileId) return;
+
+        try {
+          const contentRes = await fetch(`https://www.googleapis.com/drive/v3/files/${driveSyncFileId}?alt=media`, {
+            headers: { Authorization: `Bearer ${accessToken}` }
+          });
+
+          if (contentRes.status === 401) {
+            silentlyRenewToken();
+            setSyncStatus('Sync Error: 401', 'error');
+            return;
+          }
+
+          if (contentRes.status === 404) {
+            driveSyncFileId = null;
+            await locateOrCreateDriveFile();
+            return;
+          }
+
+          if (!contentRes.ok) {
+            const errData = await contentRes.text();
+            console.error(`Drive download error HTTP ${contentRes.status}:`, errData);
+            setSyncStatus(`Sync Error: ${contentRes.status}`, 'error');
+            return;
+          }
+
+          const cloudData = await contentRes.json();
+          if (newModifiedTime) {
+            lastKnownDriveModifiedTime = newModifiedTime;
+          }
+
+          if (cloudData) {
+            if (Array.isArray(cloudData.tasks)) {
+              tasks = cloudData.tasks;
+              localStorage.setItem(LOCAL_TASKS_KEY, JSON.stringify(tasks));
+              renderTasks();
+            }
+
+            // Only update scratchpad if user is not actively typing
+            if (typeof cloudData.scratchpad === 'string' && document.activeElement !== quickNotes) {
+              quickNotes.value = cloudData.scratchpad;
+              localStorage.setItem(LOCAL_NOTES_KEY, cloudData.scratchpad);
+            }
+          }
+          setSyncStatus('Synced', 'saved');
+        } catch (err) {
+          console.error('Failed to pull remote file contents:', err);
+          setSyncStatus('Sync Error: Pull', 'error');
+        }
+      }
+
+      // Silent 30s metadata check: checks modifiedTime without downloading entire file
       async function pollDriveMetadata() {
         if (!accessToken || isSaveInFlight) return;
 
@@ -1086,58 +1188,36 @@
             return;
           }
 
+          if (metaRes.status === 404) {
+            driveSyncFileId = null;
+            await locateOrCreateDriveFile();
+            return;
+          }
+
           if (metaRes.ok) {
             const meta = await metaRes.json();
             if (meta.modifiedTime && meta.modifiedTime !== lastKnownDriveModifiedTime) {
-              // Remote file changed on another device: pull changes without blocking UI
+              // Remote file changed on another device -> pull updates
               await pullRemoteFileContents(meta.modifiedTime);
             }
+          } else {
+            console.warn(`Drive poll error HTTP ${metaRes.status}`);
           }
         } catch (err) {
-          console.warn('Drive metadata poll notice:', err);
-        }
-      }
-
-      async function pullRemoteFileContents(newModifiedTime) {
-        if (!accessToken || !driveSyncFileId) return;
-
-        try {
-          const contentRes = await fetch(`https://www.googleapis.com/drive/v3/files/${driveSyncFileId}?alt=media`, {
-            headers: { Authorization: `Bearer ${accessToken}` }
-          });
-
-          if (contentRes.ok) {
-            const cloudData = await contentRes.json();
-            lastKnownDriveModifiedTime = newModifiedTime;
-
-            if (cloudData) {
-              if (Array.isArray(cloudData.tasks)) {
-                tasks = cloudData.tasks;
-                localStorage.setItem(LOCAL_TASKS_KEY, JSON.stringify(tasks));
-                renderTasks();
-              }
-              // Only overwrite Scratchpad if user is not actively typing in it
-              if (typeof cloudData.scratchpad === 'string' && document.activeElement !== quickNotes) {
-                quickNotes.value = cloudData.scratchpad;
-                localStorage.setItem(LOCAL_NOTES_KEY, cloudData.scratchpad);
-              }
-            }
-            setSyncStatus('Synced', 'saved');
-          }
-        } catch (err) {
-          console.error('Failed to pull remote file contents:', err);
+          console.warn('Drive metadata poll network notice:', err);
         }
       }
 
       async function syncFromDriveAppData(force) {
         if (!accessToken) return;
-        setSyncStatus('Checking...', 'syncing');
 
         if (!driveSyncFileId) {
-          await locateOrCreateDriveFile();
+          const ready = await locateOrCreateDriveFile();
+          if (!ready) return;
         }
 
         if (force || !lastKnownDriveModifiedTime) {
+          setSyncStatus('Syncing...', 'syncing');
           await pullRemoteFileContents(lastKnownDriveModifiedTime);
         } else {
           await pollDriveMetadata();
@@ -1303,7 +1383,6 @@
         updateStats();
       }
 
-      // Optimistic Add
       function addTask() {
         const value = taskInput.value.trim();
         if (!value) return;
@@ -1312,15 +1391,11 @@
         taskInput.value = '';
         taskInput.focus();
 
-        // Immediate Local & Visual Commit
         localStorage.setItem(LOCAL_TASKS_KEY, JSON.stringify(tasks));
         renderTasks();
-
-        // Non-blocking background sync
         triggerBackgroundSync();
       }
 
-      // Optimistic Toggle
       function toggleTask(taskId) {
         tasks = tasks.map(t => t.id === taskId ? { ...t, completed: !t.completed } : t);
         localStorage.setItem(LOCAL_TASKS_KEY, JSON.stringify(tasks));
@@ -1328,7 +1403,6 @@
         triggerBackgroundSync();
       }
 
-      // Optimistic Delete
       function deleteTask(taskId) {
         tasks = tasks.filter(t => t.id !== taskId);
         localStorage.setItem(LOCAL_TASKS_KEY, JSON.stringify(tasks));
@@ -1348,11 +1422,10 @@
       });
 
       // ==========================================
-      // 500MS SCRATCHPAD DEBOUNCE & STATUS PIPELINE
+      // SCRATCHPAD INPUT DEBOUNCE & CLOUD SYNC
       // ==========================================
       let noteDebounceTimer = null;
       quickNotes.addEventListener('input', () => {
-        // Instant Local Persistence
         localStorage.setItem(LOCAL_NOTES_KEY, quickNotes.value);
 
         if (!accessToken) {
@@ -1363,14 +1436,13 @@
         setSyncStatus('Saving...', 'syncing');
         clearTimeout(noteDebounceTimer);
 
-        // Responsive 500ms debounce
         noteDebounceTimer = setTimeout(() => {
           triggerBackgroundSync();
         }, 500);
       });
 
       // ==========================================
-      // INITIALIZATION & BACKGROUND POLLING
+      // INITIALIZATION & BACKGROUND INTERVALS
       // ==========================================
       window.addEventListener('DOMContentLoaded', () => {
         initDragAndDrop();
@@ -1385,14 +1457,14 @@
 
         initGoogleAuth();
 
-        // Lightweight modifiedTime check every 35 seconds (pulls changes from other devices)
+        // 30-second silent background poll for remote cross-device updates
         setInterval(() => {
           if (accessToken && !isSaveInFlight) {
             pollDriveMetadata();
           }
-        }, 35000);
+        }, 30000);
 
-        // Refresh Gmail feed every 3 minutes
+        // 3-minute Gmail feed auto-refresh
         setInterval(() => {
           if (accessToken) {
             fetchRecentEmails();
