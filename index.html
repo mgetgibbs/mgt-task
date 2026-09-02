@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MGT daily Planner</title>
+    <!-- Google Identity Services client script -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <style>
+      :root {
+        --bg: #0c192c;
+        --panel: #0f233d;
+        --panel-2: #163252;
+        --primary: #0284c7;
+        --primary-2: #38bdf8;
+        --text: #f0f9ff;
+        --muted: #94a3b8;
+        --success: #34d399;
+        --danger: #f87171;
+        --shadow: rgba(2, 132, 199, 0.25);
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-family: Inter, "Segoe UI", sans-serif;
+        background:
+          radial-gradient(circle at top, rgba(56, 189, 248, 0.2), transparent 45%),
+          linear-gradient(160deg, #030d1a 0%, var(--bg) 100%);
+        color: var(--text);
+        padding: 24px 16px;
+      }
+
+      .app {
+        width: min(98vw, 1540px);
+        background: rgba(15, 35, 61, 0.88);
+        border: 1px solid rgba(56, 189, 248, 0.2);
+        border-radius: 24px;
+        box-shadow: 0 24px 80px var(--shadow);
+        backdrop-filter: blur(14px);
+        overflow: hidden;
+      }
+
+      .header {
+        padding: 22px 32px 18px;
+        background: linear-gradient(135deg, rgba(2, 132, 199, 0.28), rgba(56, 189, 248, 0.1));
+        border-bottom: 1px solid rgba(56, 189, 248, 0.15);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 16px;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: clamp(1.8rem, 2.8vw, 2.4rem);
+        letter-spacing: -0.05em;
+        color: #e0f2fe;
+      }
+
+      .subtitle {
+        margin-top: 5px;
+        color: #93c5fd;
+        font-size: 0.92rem;
+      }
+
+      .quick-links {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      .quick-btn {
+        display: inline-flex;
+        align-items: center;
+        padding: 8px 16px;
+        background: rgba(12, 25, 44, 0.85);
+        border: 1px solid rgba(56, 189, 248, 0.3);
+        border-radius: 12px;
+        color: #bae6fd;
+        text-decoration: none;
+        font-size: 0.88rem;
+        font-weight: 600;
+        transition: all 0.2s ease;
+      }
+
+      .quick-btn:hover {
+        background: rgba(2, 132, 199, 0.35);
+        border-color: var(--primary-2);
+        color: #ffffff;
+        transform: translateY(-1px);
+      }
+
+      .workspace-grid {
+        display: grid;
+        grid-template-columns: 1.15fr 0.95fr 1.1fr;
+        gap: 22px;
+        padding: 24px 28px 28px;
+        align-items: stretch;
+      }
+
+      .column-card {
+        display: flex;
+        flex-direction: column;
+        background: rgba(12, 25, 44, 0.65);
+        border: 1px solid rgba(56, 189, 248, 0.2);
+        border-radius: 18px;
+        padding: 20px;
+      }
+
+      .composer {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 16px;
+      }
+
+      input[type="text"] {
+        flex: 1;
+        border: 1px solid rgba(56, 189, 248, 0.25);
+        background: rgba(12, 25, 44, 0.85);
+        color: var(--text);
+        border-radius: 12px;
+        padding: 13px 15px;
+        font-size: 0.96rem;
+        outline: none;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+      }
+
+      input[type="text"]:focus,
+      textarea:focus {
+        border-color: var(--primary-2);
+        box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+      }
+
+      button {
+        border: 0;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: transform 0.15s ease, opacity 0.15s ease;
+      }
+
+      button:hover { transform: translateY(-1px); }
+      button:active { transform: translateY(0); }
+
+      .primary-btn {
+        background: linear-gradient(135deg, var(--primary), var(--primary-2));
+        color: #031e38;
+        padding: 0 18px;
+        font-weight: 700;
+        font-size: 0.92rem;
+        min-height: 44px;
+      }
+
+      .secondary-btn {
+        background: rgba(56, 189, 248, 0.12);
+        color: #bae6fd;
+        border: 1px solid rgba(56, 189, 248, 0.3);
+        padding: 8px 14px;
+        font-weight: 600;
+        font-size: 0.86rem;
+      }
+
+      .secondary-btn:hover {
+        background: rgba(56, 189, 248, 0.22);
+        color: #ffffff;
+      }
+
+      .toolbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 14px;
+        flex-wrap: wrap;
+      }
+
+      .filters {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+      }
+
+      .filter-btn {
+        background: rgba(56, 189, 248, 0.08);
+        color: var(--text);
+        padding: 7px 12px;
+        font-size: 0.85rem;
+      }
+
+      .filter-btn.active {
+        background: rgba(2, 132, 199, 0.28);
+        color: #bae6fd;
+        border: 1px solid rgba(56, 189, 248, 0.6);
+      }
+
+      .stats {
+        color: #93c5fd;
+        font-size: 0.85rem;
+      }
+
+      .list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: grid;
+        gap: 10px;
+        height: 520px;
+        max-height: 520px;
+        overflow-y: auto;
+        padding-right: 4px;
+      }
+
+      .task {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        background: rgba(22, 50, 82, 0.7);
+        border: 1px solid rgba(56, 189, 248, 0.15);
+        border-radius: 12px;
+        padding: 12px 14px;
+      }
+
+      .task.completed { opacity: 0.65; }
+      .task.completed .task-text { text-decoration: line-through; color: #64748b; }
+
+      .checkbox {
+        width: 20px;
+        height: 20px;
+        border-radius: 7px;
+        border: 2px solid rgba(56, 189, 248, 0.7);
+        background: transparent;
+        position: relative;
+        flex-shrink: 0;
+      }
+
+      .task.completed .checkbox {
+        background: linear-gradient(135deg, var(--success), #22c55e);
+        border-color: transparent;
+      }
+
+      .task.completed .checkbox::after {
+        content: "";
+        position: absolute;
+        left: 5px;
+        top: 2px;
+        width: 5px;
+        height: 9px;
+        border: solid white;
+        border-width: 0 2px 2px 0;
+        transform: rotate(45deg);
+      }
+
+      .task-text { flex: 1; word-break: break-word; font-size: 0.95rem; }
+
+      .delete-btn {
+        background: rgba(248, 113, 113, 0.15);
+        color: #fecaca;
+        padding: 6px 10px;
+        font-size: 0.8rem;
+      }
+
+      .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+      }
+
+      .card-title {
+        font-weight: 700;
+        font-size: 1.05rem;
+        color: #bae6fd;
+      }
+
+      .card-status { font-size: 0.8rem; color: #64748b; }
+      .card-status.saved { color: var(--success); }
+
+      .editor-area {
+        width: 100%;
+        background: rgba(8, 18, 33, 0.85);
+        border: 1px solid rgba(56, 189, 248, 0.18);
+        border-radius: 12px;
+        color: var(--text);
+        padding: 14px;
+        font-family: inherit;
+        font-size: 0.92rem;
+        line-height: 1.55;
+        resize: none;
+        outline: none;
+      }
+
+      .notepad-area { 
+        flex: 1; 
+        height: 520px;
+        min-height: 520px; 
+      }
+
+      /* Live Gmail Feed Styles */
+      .action-row {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 12px;
+      }
+
+      .feed-container {
+        flex: 1;
+        height: 520px;
+        max-height: 520px;
+        background: rgba(8, 18, 33, 0.85);
+        border: 1px solid rgba(56, 189, 248, 0.18);
+        border-radius: 12px;
+        padding: 12px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      /* Custom Dark Scrollbar (WebKit) */
+      .feed-container::-webkit-scrollbar,
+      .list::-webkit-scrollbar,
+      .notepad-area::-webkit-scrollbar {
+        width: 6px;
+      }
+
+      .feed-container::-webkit-scrollbar-track,
+      .list::-webkit-scrollbar-track,
+      .notepad-area::-webkit-scrollbar-track {
+        background: rgba(8, 18, 33, 0.5);
+        border-radius: 8px;
+      }
+
+      .feed-container::-webkit-scrollbar-thumb,
+      .list::-webkit-scrollbar-thumb,
+      .notepad-area::-webkit-scrollbar-thumb {
+        background: rgba(56, 189, 248, 0.28);
+        border-radius: 8px;
+      }
+
+      .feed-container::-webkit-scrollbar-thumb:hover,
+      .list::-webkit-scrollbar-thumb:hover,
+      .notepad-area::-webkit-scrollbar-thumb:hover {
+        background: rgba(56, 189, 248, 0.5);
+      }
+
+      /* Custom Dark Scrollbar (Firefox) */
+      .feed-container,
+      .list,
+      .notepad-area {
+        scrollbar-width: thin;
+        scrollbar-color: rgba(56, 189, 248, 0.28) rgba(8, 18, 33, 0.5);
+      }
+
+      /* Clickable Email Item Styling */
+      .email-item {
+        background: rgba(15, 35, 61, 0.7);
+        border: 1px solid rgba(56, 189, 248, 0.15);
+        border-radius: 10px;
+        padding: 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        text-decoration: none;
+        color: inherit;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+
+      .email-item:hover {
+        background: rgba(22, 50, 82, 0.85);
+        border-color: var(--primary-2);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 14px rgba(2, 132, 199, 0.2);
+      }
+
+      .email-header-meta {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.82rem;
+        color: #93c5fd;
+      }
+
+      .email-from { font-weight: 700; }
+      .email-subject { font-size: 0.92rem; font-weight: 600; color: #ffffff; }
+      .email-snippet { font-size: 0.84rem; color: #94a3b8; line-height: 1.4; }
+
+      .empty-feed {
+        color: #64748b;
+        font-size: 0.92rem;
+        text-align: center;
+        margin: auto;
+        padding: 20px;
+      }
+
+      @media (max-width: 1200px) {
+        .workspace-grid { grid-template-columns: 1fr 1fr; }
+        .workspace-grid > .column-card:nth-child(3) { grid-column: span 2; }
+      }
+
+      @media (max-width: 780px) {
+        .workspace-grid { grid-template-columns: 1fr; }
+        .workspace-grid > .column-card:nth-child(3) { grid-column: span 1; }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="app">
+      <header class="header">
+        <div>
+          <h1>MGT daily Planner</h1>
+          <div class="subtitle">Keep track of your priorities, quick notes, and live inbox feed.</div>
+        </div>
+
+        <div class="quick-links">
+          <a href="https://gemini.google.com" target="_blank" rel="noopener noreferrer" class="quick-btn">Gemini</a>
+          <a href="https://mail.google.com" target="_blank" rel="noopener noreferrer" class="quick-btn">Gmail</a>
+          <a href="https://drive.google.com" target="_blank" rel="noopener noreferrer" class="quick-btn">Drive</a>
+        </div>
+      </header>
+
+      <div class="workspace-grid">
+        <!-- 1. Task Planner -->
+        <section class="column-card">
+          <div class="card-header">
+            <span class="card-title">Daily Planner</span>
+            <span id="taskStats" class="stats">0 tasks</span>
+          </div>
+
+          <div class="composer">
+            <input id="taskInput" type="text" placeholder="Add a task..." maxlength="160" />
+            <button id="addTaskBtn" class="primary-btn" type="button">Add</button>
+          </div>
+
+          <div class="toolbar">
+            <div class="filters" aria-label="Filter tasks">
+              <button class="filter-btn active" data-filter="all" type="button">All</button>
+              <button class="filter-btn" data-filter="active" type="button">Active</button>
+              <button class="filter-btn" data-filter="completed" type="button">Done</button>
+            </div>
+          </div>
+
+          <ul id="taskList" class="list" aria-live="polite"></ul>
+        </section>
+
+        <!-- 2. Auto-saving Scratchpad -->
+        <aside class="column-card">
+          <div class="card-header">
+            <span class="card-title">Quick Scratchpad</span>
+            <span id="noteStatus" class="card-status">Saved</span>
+          </div>
+          <textarea
+            id="quickNotes"
+            class="editor-area notepad-area"
+            placeholder="Jot down quick thoughts, links, or draft notes here..."
+          ></textarea>
+        </aside>
+
+        <!-- 3. Live Gmail Feed with GIS Auth -->
+        <section class="column-card">
+          <div class="card-header">
+            <span class="card-title">Live Gmail Feed</span>
+            <span id="authStatus" class="card-status">Not connected</span>
+          </div>
+
+          <div class="action-row">
+            <button id="authBtn" class="primary-btn" type="button">Connect Gmail</button>
+            <button id="refreshBtn" class="secondary-btn" type="button" style="display: none;">Refresh</button>
+            <button id="revokeBtn" class="secondary-btn" type="button" style="display: none;">Disconnect</button>
+          </div>
+
+          <div id="emailFeed" class="feed-container">
+            <div class="empty-feed">Click "Connect Gmail" above to link your account and view recent emails.</div>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <script>
+      // ==========================================
+      // GOOGLE AUTH & GMAIL API CONFIGURATION
+      // ==========================================
+      const CLIENT_ID = '912308604808-p1nkq6drca0mvt60ipp9u1bpj9bh5iud.apps.googleusercontent.com';
+      const GMAIL_SCOPE = 'https://www.googleapis.com/auth/gmail.readonly';
+
+      let tokenClient;
+      let accessToken = null;
+
+      const authBtn = document.getElementById('authBtn');
+      const refreshBtn = document.getElementById('refreshBtn');
+      const revokeBtn = document.getElementById('revokeBtn');
+      const authStatus = document.getElementById('authStatus');
+      const emailFeed = document.getElementById('emailFeed');
+
+      function initGoogleAuth() {
+        if (typeof google === 'undefined' || !google.accounts || !google.accounts.oauth2) {
+          setTimeout(initGoogleAuth, 100);
+          return;
+        }
+
+        tokenClient = google.accounts.oauth2.initTokenClient({
+          client_id: CLIENT_ID,
+          scope: GMAIL_SCOPE,
+          callback: async (resp) => {
+            if (resp.error) {
+              authStatus.textContent = 'Auth error';
+              authStatus.style.color = 'var(--danger)';
+              console.error(resp);
+              return;
+            }
+
+            accessToken = resp.access_token;
+            authStatus.textContent = 'Connected';
+            authStatus.className = 'card-status saved';
+            authBtn.style.display = 'none';
+            refreshBtn.style.display = 'inline-flex';
+            revokeBtn.style.display = 'inline-flex';
+
+            fetchRecentEmails();
+          }
+        });
+      }
+
+      window.addEventListener('DOMContentLoaded', initGoogleAuth);
+
+      authBtn.addEventListener('click', () => {
+        if (!tokenClient) {
+          alert('Google Auth library is still initializing. Please wait a moment.');
+          return;
+        }
+        tokenClient.requestAccessToken({ prompt: 'consent' });
+      });
+
+      refreshBtn.addEventListener('click', () => {
+        if (accessToken) fetchRecentEmails();
+      });
+
+      revokeBtn.addEventListener('click', () => {
+        if (accessToken) {
+          google.accounts.oauth2.revoke(accessToken, () => {
+            accessToken = null;
+            authStatus.textContent = 'Disconnected';
+            authStatus.className = 'card-status';
+            authBtn.style.display = 'inline-flex';
+            refreshBtn.style.display = 'none';
+            revokeBtn.style.display = 'none';
+            emailFeed.innerHTML = '<div class="empty-feed">Disconnected from Google.</div>';
+          });
+        }
+      });
+
+      // Fetch up to 50 latest messages from Gmail REST API
+      async function fetchRecentEmails() {
+        emailFeed.innerHTML = '<div class="empty-feed">Fetching inbox messages...</div>';
+
+        try {
+          const listRes = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages?maxResults=50', {
+            headers: { Authorization: `Bearer ${accessToken}` }
+          });
+
+          if (!listRes.ok) throw new Error('Failed to retrieve messages');
+          const listData = await listRes.json();
+
+          if (!listData.messages || listData.messages.length === 0) {
+            emailFeed.innerHTML = '<div class="empty-feed">No messages found in your inbox.</div>';
+            return;
+          }
+
+          // Fetch full headers and snippets concurrently
+          const messagePromises = listData.messages.map(m =>
+            fetch(`https://gmail.googleapis.com/gmail/v1/users/me/messages/${m.id}?format=metadata&metadataHeaders=From&metadataHeaders=Subject&metadataHeaders=Date`, {
+              headers: { Authorization: `Bearer ${accessToken}` }
+            }).then(r => r.json())
+          );
+
+          const fullMessages = await Promise.all(messagePromises);
+          renderEmails(fullMessages);
+        } catch (err) {
+          emailFeed.innerHTML = `<div class="empty-feed" style="color:var(--danger)">Error fetching emails: ${err.message}</div>`;
+        }
+      }
+
+      function renderEmails(messages) {
+        emailFeed.innerHTML = '';
+
+        messages.forEach(msg => {
+          const headers = msg.payload?.headers || [];
+          const fromHeader = headers.find(h => h.name.toLowerCase() === 'from')?.value || 'Unknown Sender';
+          const subjectHeader = headers.find(h => h.name.toLowerCase() === 'subject')?.value || '(No Subject)';
+          const cleanSnippet = msg.snippet ? unescapeHtml(msg.snippet) : '';
+
+          // Direct deep-link to the message thread in Gmail web
+          const directUrl = `https://mail.google.com/mail/u/0/#inbox/${msg.id}`;
+
+          const item = document.createElement('a');
+          item.className = 'email-item';
+          item.href = directUrl;
+          item.target = '_blank';
+          item.rel = 'noopener noreferrer';
+          item.title = 'Open in Gmail';
+
+          item.innerHTML = `
+            <div class="email-header-meta">
+              <span class="email-from">${escapeHtml(cleanSender(fromHeader))}</span>
+            </div>
+            <div class="email-subject">${escapeHtml(subjectHeader)}</div>
+            <div class="email-snippet">${escapeHtml(cleanSnippet)}</div>
+          `;
+          emailFeed.appendChild(item);
+        });
+      }
+
+      function cleanSender(sender) {
+        const match = sender.match(/^"?([^"<]+)"?\s*<.*>$/);
+        return match ? match[1].trim() : sender;
+      }
+
+      function escapeHtml(str) {
+        return String(str).replace(/[&<>"']/g, m => ({
+          '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+        }[m]));
+      }
+
+      function unescapeHtml(str) {
+        const doc = new DOMParser().parseFromString(str, 'text/html');
+        return doc.body.textContent || '';
+      }
+
+      // ==========================================
+      // PLANNER & SCRATCHPAD LOCAL STORAGE LOGIC
+      // ==========================================
+      const STORAGE_KEY = 'daily-focus.tasks';
+      const NOTE_KEY = 'daily-focus.notes';
+
+      const taskInput = document.getElementById('taskInput');
+      const addTaskBtn = document.getElementById('addTaskBtn');
+      const taskList = document.getElementById('taskList');
+      const taskStats = document.getElementById('taskStats');
+      const filterButtons = document.querySelectorAll('.filter-btn');
+
+      const quickNotes = document.getElementById('quickNotes');
+      const noteStatus = document.getElementById('noteStatus');
+
+      let tasks = loadTasks();
+      let currentFilter = 'all';
+
+      quickNotes.value = localStorage.getItem(NOTE_KEY) || '';
+
+      let noteTimeout;
+      quickNotes.addEventListener('input', () => {
+        noteStatus.textContent = 'Saving...';
+        noteStatus.classList.remove('saved');
+        clearTimeout(noteTimeout);
+        noteTimeout = setTimeout(() => {
+          localStorage.setItem(NOTE_KEY, quickNotes.value);
+          noteStatus.textContent = 'Saved';
+          noteStatus.classList.add('saved');
+        }, 350);
+      });
+
+      function loadTasks() {
+        try {
+          const saved = localStorage.getItem(STORAGE_KEY);
+          return saved ? JSON.parse(saved) : [
+            { id: crypto.randomUUID(), text: 'Plan your top 3 priorities', completed: false },
+            { id: crypto.randomUUID(), text: 'Check Gmail feed updates', completed: false }
+          ];
+        } catch (error) {
+          return [];
+        }
+      }
+
+      function saveTasks() {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+      }
+
+      function getFilteredTasks() {
+        if (currentFilter === 'active') return tasks.filter(t => !t.completed);
+        if (currentFilter === 'completed') return tasks.filter(t => t.completed);
+        return tasks;
+      }
+
+      function updateStats() {
+        const remaining = tasks.filter(t => !t.completed).length;
+        const total = tasks.length;
+        taskStats.textContent = `${total === 1 ? '1 task' : `${total} tasks`} • ${remaining} left`;
+      }
+
+      function renderTasks() {
+        const filtered = getFilteredTasks();
+        taskList.innerHTML = '';
+
+        if (filtered.length === 0) {
+          const empty = document.createElement('li');
+          empty.className = 'empty';
+          empty.textContent = currentFilter === 'all' ? 'No tasks yet.' : 'No tasks in this view.';
+          taskList.appendChild(empty);
+          updateStats();
+          return;
+        }
+
+        filtered.forEach(task => {
+          const item = document.createElement('li');
+          item.className = `task ${task.completed ? 'completed' : ''}`;
+
+          const checkbox = document.createElement('button');
+          checkbox.type = 'button';
+          checkbox.className = 'checkbox';
+          checkbox.addEventListener('click', () => toggleTask(task.id));
+
+          const text = document.createElement('span');
+          text.className = 'task-text';
+          text.textContent = task.text;
+
+          const deleteBtn = document.createElement('button');
+          deleteBtn.type = 'button';
+          deleteBtn.className = 'delete-btn';
+          deleteBtn.textContent = 'Delete';
+          deleteBtn.addEventListener('click', () => deleteTask(task.id));
+
+          item.appendChild(checkbox);
+          item.appendChild(text);
+          item.appendChild(deleteBtn);
+          taskList.appendChild(item);
+        });
+
+        updateStats();
+      }
+
+      function addTask() {
+        const value = taskInput.value.trim();
+        if (!value) return;
+
+        tasks.unshift({ id: crypto.randomUUID(), text: value, completed: false });
+        taskInput.value = '';
+        taskInput.focus();
+        saveTasks();
+        renderTasks();
+      }
+
+      function toggleTask(taskId) {
+        tasks = tasks.map(t => t.id === taskId ? { ...t, completed: !t.completed } : t);
+        saveTasks();
+        renderTasks();
+      }
+
+      function deleteTask(taskId) {
+        tasks = tasks.filter(t => t.id !== taskId);
+        saveTasks();
+        renderTasks();
+      }
+
+      addTaskBtn.addEventListener('click', addTask);
+      taskInput.addEventListener('keydown', e => { if (e.key === 'Enter') addTask(); });
+
+      filterButtons.forEach(button => {
+        button.addEventListener('click', () => {
+          currentFilter = button.dataset.filter;
+          filterButtons.forEach(btn => btn.classList.toggle('active', btn === button));
+          renderTasks();
+        });
+      });
+
+      renderTasks();
+    </script>
+  </body>
+</html>
