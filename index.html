@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>MGT Daily Planner</title>
     <!-- Google Identity Services client script -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -20,7 +20,14 @@
         --shadow: rgba(2, 132, 199, 0.25);
       }
 
-      * { box-sizing: border-box; }
+      * {
+        box-sizing: border-box;
+      }
+
+      html, body {
+        max-width: 100%;
+        overflow-x: hidden;
+      }
 
       body {
         margin: 0;
@@ -38,6 +45,7 @@
 
       .app {
         width: min(98vw, 1540px);
+        max-width: 100%;
         background: rgba(15, 35, 61, 0.88);
         border: 1px solid rgba(56, 189, 248, 0.2);
         border-radius: 24px;
@@ -57,11 +65,18 @@
         gap: 16px;
       }
 
+      .header-title-block {
+        min-width: 0;
+        flex: 1 1 280px;
+      }
+
       h1 {
         margin: 0;
-        font-size: clamp(1.8rem, 2.8vw, 2.4rem);
-        letter-spacing: -0.05em;
+        font-size: clamp(1.4rem, 2.8vw, 2.4rem);
+        letter-spacing: -0.04em;
         color: #e0f2fe;
+        overflow-wrap: anywhere;
+        word-break: break-word;
       }
 
       .subtitle {
@@ -114,6 +129,9 @@
         padding: 16px 20px 20px;
         transition: transform 0.2s ease, opacity 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
         position: relative;
+        min-width: 0;
+        width: 100%;
+        max-width: 100%;
       }
 
       .column-card.dragging {
@@ -165,6 +183,7 @@
 
       input[type="text"] {
         flex: 1;
+        min-width: 0;
         border: 1px solid rgba(56, 189, 248, 0.25);
         background: rgba(12, 25, 44, 0.85);
         color: var(--text);
@@ -304,6 +323,7 @@
         border-radius: 12px;
         padding: 12px 14px;
         transition: transform 0.15s ease, opacity 0.15s ease;
+        min-width: 0;
       }
 
       .task.completed { opacity: 0.65; }
@@ -336,13 +356,20 @@
         transform: rotate(45deg);
       }
 
-      .task-text { flex: 1; word-break: break-word; font-size: 0.95rem; }
+      .task-text {
+        flex: 1;
+        overflow-wrap: anywhere;
+        word-break: break-word;
+        font-size: 0.95rem;
+        min-width: 0;
+      }
 
       .delete-btn {
         background: rgba(248, 113, 113, 0.15);
         color: #fecaca;
         padding: 6px 10px;
         font-size: 0.8rem;
+        flex-shrink: 0;
       }
 
       .card-header {
@@ -352,20 +379,22 @@
         margin-bottom: 14px;
         min-height: 42px;
         gap: 12px;
+        flex-wrap: wrap;
       }
 
       .card-title {
         font-weight: 700;
         font-size: 1.05rem;
         color: #bae6fd;
-        white-space: nowrap;
+        overflow-wrap: anywhere;
+        word-break: break-word;
       }
 
       .feed-header-actions {
         display: flex;
         align-items: center;
         gap: 8px;
-        flex-wrap: nowrap;
+        flex-wrap: wrap;
         justify-content: flex-end;
       }
 
@@ -376,10 +405,9 @@
         border: 1px solid rgba(56, 189, 248, 0.18);
         border-radius: 8px;
         padding: 6px 10px;
-        max-width: 250px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
+        max-width: 100%;
+        overflow-wrap: anywhere;
+        word-break: break-word;
         display: inline-flex;
         align-items: center;
         gap: 6px;
@@ -406,6 +434,7 @@
         border-radius: 50%;
         background: var(--primary-2);
         display: inline-block;
+        flex-shrink: 0;
       }
       .syncing .sync-dot {
         animation: pulse-dot 1s infinite alternate;
@@ -432,8 +461,178 @@
 
       .notepad-area { 
         flex: 1; 
-        height: 520px;
-        min-height: 520px; 
+        height: 400px;
+        min-height: 400px; 
+      }
+
+      /* Attachment & Drop Zone Styling */
+      .drop-zone {
+        border: 2px dashed rgba(56, 189, 248, 0.25);
+        border-radius: 14px;
+        padding: 6px;
+        display: flex;
+        flex-direction: column;
+        transition: all 0.2s ease;
+      }
+
+      .drop-zone.drag-active {
+        border-color: var(--primary-2);
+        background: rgba(2, 132, 199, 0.15);
+      }
+
+      .attachment-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: 10px;
+        gap: 10px;
+      }
+
+      .attach-action-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: rgba(56, 189, 248, 0.12);
+        color: #bae6fd;
+        border: 1px solid rgba(56, 189, 248, 0.3);
+        padding: 6px 14px;
+        border-radius: 10px;
+        font-size: 0.82rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+
+      .attach-action-btn:hover {
+        background: rgba(56, 189, 248, 0.25);
+        color: #ffffff;
+      }
+
+      .attach-hint {
+        font-size: 0.76rem;
+        color: var(--muted);
+      }
+
+      .attachments-rail {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 10px;
+        max-height: 120px;
+        overflow-y: auto;
+        padding: 4px 2px;
+      }
+
+      .attachment-card {
+        position: relative;
+        background: rgba(15, 35, 61, 0.95);
+        border: 1px solid rgba(56, 189, 248, 0.25);
+        border-radius: 10px;
+        padding: 4px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        max-width: 220px;
+      }
+
+      .attachment-thumb {
+        width: 56px;
+        height: 56px;
+        object-fit: cover;
+        border-radius: 6px;
+        cursor: pointer;
+        background: #081221;
+        transition: transform 0.15s ease;
+      }
+
+      .attachment-thumb:hover {
+        transform: scale(1.05);
+      }
+
+      .pdf-badge {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 8px;
+        font-size: 0.8rem;
+        color: #e0f2fe;
+        text-decoration: none;
+        max-width: 170px;
+      }
+
+      .pdf-icon {
+        color: #f87171;
+        font-weight: 800;
+        font-size: 0.9rem;
+      }
+
+      .pdf-title {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-size: 0.82rem;
+        color: #bae6fd;
+      }
+
+      .attachment-del-btn {
+        position: absolute;
+        top: -6px;
+        right: -6px;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: #ef4444;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 11px;
+        cursor: pointer;
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        padding: 0;
+        line-height: 1;
+      }
+
+      /* Lightbox Modal */
+      .lightbox-modal {
+        position: fixed;
+        inset: 0;
+        background: rgba(3, 13, 26, 0.92);
+        backdrop-filter: blur(8px);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        padding: 20px;
+      }
+
+      .lightbox-modal.active {
+        display: flex;
+      }
+
+      .lightbox-img {
+        max-width: 90vw;
+        max-height: 85vh;
+        border-radius: 12px;
+        box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6);
+        border: 1px solid rgba(56, 189, 248, 0.3);
+      }
+
+      .lightbox-close {
+        position: absolute;
+        top: 24px;
+        right: 28px;
+        background: rgba(15, 35, 61, 0.8);
+        border: 1px solid rgba(56, 189, 248, 0.3);
+        color: #fff;
+        font-size: 1.5rem;
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
       }
 
       .feed-container {
@@ -452,35 +651,32 @@
 
       .feed-container::-webkit-scrollbar,
       .list::-webkit-scrollbar,
-      .notepad-area::-webkit-scrollbar {
+      .notepad-area::-webkit-scrollbar,
+      .attachments-rail::-webkit-scrollbar {
         width: 6px;
       }
 
       .feed-container::-webkit-scrollbar-track,
       .list::-webkit-scrollbar-track,
-      .notepad-area::-webkit-scrollbar-track {
+      .notepad-area::-webkit-scrollbar-track,
+      .attachments-rail::-webkit-scrollbar-track {
         background: rgba(8, 18, 33, 0.5);
         border-radius: 8px;
       }
 
       .feed-container::-webkit-scrollbar-thumb,
       .list::-webkit-scrollbar-thumb,
-      .notepad-area::-webkit-scrollbar-thumb {
+      .notepad-area::-webkit-scrollbar-thumb,
+      .attachments-rail::-webkit-scrollbar-thumb {
         background: rgba(56, 189, 248, 0.28);
         border-radius: 8px;
       }
 
       .feed-container::-webkit-scrollbar-thumb:hover,
       .list::-webkit-scrollbar-thumb:hover,
-      .notepad-area::-webkit-scrollbar-thumb:hover {
+      .notepad-area::-webkit-scrollbar-thumb:hover,
+      .attachments-rail::-webkit-scrollbar-thumb:hover {
         background: rgba(56, 189, 248, 0.5);
-      }
-
-      .feed-container,
-      .list,
-      .notepad-area {
-        scrollbar-width: thin;
-        scrollbar-color: rgba(56, 189, 248, 0.28) rgba(8, 18, 33, 0.5);
       }
 
       .email-item {
@@ -495,6 +691,7 @@
         color: inherit;
         cursor: pointer;
         transition: all 0.2s ease;
+        min-width: 0;
       }
 
       .email-item:hover {
@@ -509,11 +706,30 @@
         justify-content: space-between;
         font-size: 0.82rem;
         color: #93c5fd;
+        gap: 8px;
       }
 
-      .email-from { font-weight: 700; }
-      .email-subject { font-size: 0.92rem; font-weight: 600; color: #ffffff; }
-      .email-snippet { font-size: 0.84rem; color: #94a3b8; line-height: 1.4; }
+      .email-from { 
+        font-weight: 700;
+        overflow-wrap: anywhere;
+        word-break: break-word;
+      }
+
+      .email-subject { 
+        font-size: 0.92rem; 
+        font-weight: 600; 
+        color: #ffffff;
+        overflow-wrap: anywhere;
+        word-break: break-word;
+      }
+
+      .email-snippet { 
+        font-size: 0.84rem; 
+        color: #94a3b8; 
+        line-height: 1.4;
+        overflow-wrap: anywhere;
+        word-break: break-word;
+      }
 
       .empty-feed {
         color: #64748b;
@@ -523,23 +739,111 @@
         padding: 20px;
       }
 
+      /* Responsive Rules */
       @media (max-width: 1200px) {
         .workspace-grid { grid-template-columns: 1fr 1fr; }
         .workspace-grid > .column-card:nth-child(3) { grid-column: span 2; }
       }
 
-      @media (max-width: 780px) {
-        .workspace-grid { grid-template-columns: 1fr; }
-        .workspace-grid > .column-card:nth-child(3) { grid-column: span 1; }
-        .card-header { flex-direction: column; align-items: flex-start; gap: 8px; }
-        .feed-header-actions { width: 100%; justify-content: flex-start; }
+      @media (max-width: 768px) {
+        body {
+          padding: 8px 6px;
+        }
+
+        .app {
+          border-radius: 16px;
+        }
+
+        .header {
+          padding: 16px 14px;
+          gap: 12px;
+        }
+
+        .header-title-block {
+          flex: 1 1 100%;
+        }
+
+        h1 {
+          font-size: 1.4rem;
+        }
+
+        .subtitle {
+          font-size: 0.84rem;
+        }
+
+        .quick-links {
+          width: 100%;
+          gap: 8px;
+        }
+
+        .quick-btn {
+          flex: 1 1 auto;
+          justify-content: center;
+          padding: 8px 10px;
+          font-size: 0.82rem;
+        }
+
+        .workspace-grid {
+          grid-template-columns: 1fr;
+          padding: 14px 12px 18px;
+          gap: 16px;
+        }
+
+        .workspace-grid > .column-card:nth-child(3) {
+          grid-column: span 1;
+        }
+
+        .column-card {
+          padding: 14px;
+          border-radius: 14px;
+        }
+
+        .card-drag-handle {
+          display: none;
+        }
+
+        .card-header {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 8px;
+        }
+
+        .feed-header-actions {
+          width: 100%;
+          justify-content: flex-start;
+          gap: 6px;
+        }
+
+        .list,
+        .feed-container {
+          height: 380px;
+          min-height: 380px;
+          max-height: 380px;
+        }
+
+        .notepad-area {
+          height: 280px;
+          min-height: 280px;
+        }
+
+        .composer input[type="text"] {
+          font-size: 0.9rem;
+          padding: 10px 12px;
+        }
+
+        .primary-btn,
+        .secondary-btn,
+        .danger-btn {
+          font-size: 0.8rem;
+          padding: 6px 10px;
+        }
       }
     </style>
   </head>
   <body>
     <main class="app">
       <header class="header">
-        <div>
+        <div class="header-title-block">
           <h1>MGT Daily Planner</h1>
           <div class="subtitle">Keep track of your priorities, quick notes, and live inbox feed.</div>
         </div>
@@ -580,7 +884,7 @@
           <ul id="taskList" class="list" aria-live="polite"></ul>
         </section>
 
-        <!-- 2. Auto-saving Scratchpad -->
+        <!-- 2. Auto-saving Scratchpad with Attachments -->
         <aside id="card-notes" class="column-card" draggable="true" data-card-id="notes">
           <div class="card-drag-handle" title="Drag to reorder column">
             <span class="drag-dots"></span>
@@ -590,11 +894,24 @@
             <span class="card-title">Quick Scratchpad</span>
             <span id="noteStatus" class="card-status">Local storage</span>
           </div>
-          <textarea
-            id="quickNotes"
-            class="editor-area notepad-area"
-            placeholder="Jot down quick thoughts, links, or draft notes here..."
-          ></textarea>
+
+          <div id="dropZone" class="drop-zone">
+            <textarea
+              id="quickNotes"
+              class="editor-area notepad-area"
+              placeholder="Jot down quick thoughts, links, or drop images & PDFs here..."
+            ></textarea>
+
+            <div class="attachment-bar">
+              <input type="file" id="filePicker" accept="image/*,application/pdf" multiple style="display: none;" />
+              <button id="attachBtn" type="button" class="attach-action-btn">
+                <span>📎</span> <span>Attach file</span>
+              </button>
+              <span class="attach-hint">Images & PDFs supported</span>
+            </div>
+
+            <div id="attachmentsRail" class="attachments-rail"></div>
+          </div>
         </aside>
 
         <!-- 3. Live Gmail Feed -->
@@ -620,12 +937,17 @@
       </div>
     </main>
 
+    <!-- Lightbox Modal for Attachment Viewing -->
+    <div id="lightboxModal" class="lightbox-modal">
+      <button id="lightboxClose" class="lightbox-close" type="button">&times;</button>
+      <img id="lightboxImg" class="lightbox-img" src="" alt="Expanded Preview" />
+    </div>
+
     <script>
       // ==========================================
       // CONSTANTS & CLOUD STORAGE CONFIGURATION
       // ==========================================
       const CLIENT_ID = '912308604808-p1nkq6drca0mvt60ipp9u1bpj9bh5iud.apps.googleusercontent.com';
-      // Verified scopes for Gmail & AppData space
       const OAUTH_SCOPES = 'https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/drive.appdata';
       const CLOUD_SYNC_FILENAME = 'mgt_dashboard_data.json';
       
@@ -634,6 +956,7 @@
       const COLUMN_ORDER_KEY = 'mgt_column_order';
       const LOCAL_TASKS_KEY = 'mgt_local_tasks';
       const LOCAL_NOTES_KEY = 'mgt_local_notes';
+      const LOCAL_ATTACHMENTS_KEY = 'mgt_local_attachments';
 
       let tokenClient = null;
       let isGisReady = false;
@@ -645,6 +968,9 @@
       let isSaveInFlight = false;
       let pendingSaveQueued = false;
       let silentRefreshTimer = null;
+
+      // In-memory cache for ObjectURLs
+      const blobUrlCache = new Map();
 
       // DOM Elements
       const workspaceGrid = document.getElementById('workspaceGrid');
@@ -663,6 +989,14 @@
 
       const quickNotes = document.getElementById('quickNotes');
       const noteStatus = document.getElementById('noteStatus');
+      const dropZone = document.getElementById('dropZone');
+      const filePicker = document.getElementById('filePicker');
+      const attachBtn = document.getElementById('attachBtn');
+      const attachmentsRail = document.getElementById('attachmentsRail');
+
+      const lightboxModal = document.getElementById('lightboxModal');
+      const lightboxImg = document.getElementById('lightboxImg');
+      const lightboxClose = document.getElementById('lightboxClose');
 
       // State Hydration from local cache
       let tasks = [];
@@ -672,25 +1006,66 @@
           { id: crypto.randomUUID(), text: 'Review inbox feed and clean emails', completed: false }
         ];
       } catch {
-        tasks = [
-          { id: crypto.randomUUID(), text: 'Plan your top 3 priorities', completed: false }
-        ];
+        tasks = [{ id: crypto.randomUUID(), text: 'Plan your top 3 priorities', completed: false }];
       }
+
+      let attachments = [];
+      try {
+        attachments = JSON.parse(localStorage.getItem(LOCAL_ATTACHMENTS_KEY)) || [];
+      } catch {
+        attachments = [];
+      }
+
       quickNotes.value = localStorage.getItem(LOCAL_NOTES_KEY) || '';
       let currentFilter = 'all';
 
       // ==========================================
-      // DRAG & DROP COLUMN REORDERING
+      // LIGHTBOX CONTROLS
+      // ==========================================
+      function openLightbox(url) {
+        lightboxImg.src = url;
+        lightboxModal.classList.add('active');
+      }
+
+      lightboxClose.addEventListener('click', () => {
+        lightboxModal.classList.remove('active');
+        lightboxImg.src = '';
+      });
+
+      lightboxModal.addEventListener('click', (e) => {
+        if (e.target === lightboxModal) {
+          lightboxModal.classList.remove('active');
+          lightboxImg.src = '';
+        }
+      });
+
+      // ==========================================
+      // DRAG & DROP COLUMN REORDERING (DESKTOP)
       // ==========================================
       let draggedCard = null;
 
+      function configureResponsiveDraggable() {
+        const isMobile = window.innerWidth <= 768;
+        const cards = document.querySelectorAll('.column-card');
+        cards.forEach(card => {
+          card.setAttribute('draggable', isMobile ? 'false' : 'true');
+        });
+      }
+
       function initDragAndDrop() {
         restoreColumnOrder();
+        configureResponsiveDraggable();
+        window.addEventListener('resize', configureResponsiveDraggable);
 
         const cards = document.querySelectorAll('.column-card');
 
         cards.forEach(card => {
           card.addEventListener('dragstart', (e) => {
+            if (window.innerWidth <= 768) {
+              e.preventDefault();
+              return;
+            }
+
             if (['INPUT', 'TEXTAREA', 'BUTTON', 'A'].includes(e.target.tagName)) {
               e.preventDefault();
               return;
@@ -712,6 +1087,7 @@
           });
 
           card.addEventListener('dragover', (e) => {
+            if (window.innerWidth <= 768) return;
             e.preventDefault();
             e.dataTransfer.dropEffect = 'move';
             if (draggedCard && draggedCard !== card) {
@@ -724,6 +1100,7 @@
           });
 
           card.addEventListener('drop', (e) => {
+            if (window.innerWidth <= 768) return;
             e.preventDefault();
             card.classList.remove('drag-over');
 
@@ -804,7 +1181,6 @@
               await fetchUserProfileEmail();
               setLoggedInUI(currentUserEmail);
 
-              // Initial load sync across devices
               await syncFromDriveAppData(true);
               fetchRecentEmails();
             }
@@ -826,7 +1202,6 @@
 
       function scheduleSilentRefresh() {
         if (silentRefreshTimer) clearTimeout(silentRefreshTimer);
-        // Refresh token silently at 45 minutes
         silentRefreshTimer = setTimeout(() => {
           silentlyRenewToken();
         }, 45 * 60 * 1000);
@@ -934,8 +1309,13 @@
         driveSyncFileId = null;
         lastKnownDriveModifiedTime = null;
 
+        // Revoke cached Blob URLs
+        blobUrlCache.forEach(url => URL.revokeObjectURL(url));
+        blobUrlCache.clear();
+
         setLoggedOutUI();
         renderTasks();
+        renderAttachments();
       });
 
       function setSyncStatus(text, statusClass) {
@@ -944,7 +1324,7 @@
       }
 
       // ==========================================
-      // ROBUST MULTIPART DRIVE APPDATA ENGINE
+      // MULTIPART DRIVE APPDATA ENGINE & SYNC
       // ==========================================
       function triggerBackgroundSync() {
         if (!accessToken) {
@@ -976,6 +1356,7 @@
           const payload = {
             tasks: tasks,
             scratchpad: quickNotes.value,
+            attachments: attachments,
             clientTimestamp: Date.now()
           };
 
@@ -1058,7 +1439,6 @@
             return true;
           }
 
-          // Construct standards-compliant multipart boundary request
           const boundary = '-------314159265358979323846';
           const delimiter = `\r\n--${boundary}\r\n`;
           const closeDelimiter = `\r\n--${boundary}--`;
@@ -1071,6 +1451,7 @@
           const mediaData = {
             tasks: tasks,
             scratchpad: quickNotes.value || '',
+            attachments: attachments,
             clientTimestamp: Date.now()
           };
 
@@ -1156,10 +1537,15 @@
               renderTasks();
             }
 
-            // Only update scratchpad if user is not actively typing
             if (typeof cloudData.scratchpad === 'string' && document.activeElement !== quickNotes) {
               quickNotes.value = cloudData.scratchpad;
               localStorage.setItem(LOCAL_NOTES_KEY, cloudData.scratchpad);
+            }
+
+            if (Array.isArray(cloudData.attachments)) {
+              attachments = cloudData.attachments;
+              localStorage.setItem(LOCAL_ATTACHMENTS_KEY, JSON.stringify(attachments));
+              renderAttachments();
             }
           }
           setSyncStatus('Synced', 'saved');
@@ -1169,7 +1555,6 @@
         }
       }
 
-      // Silent 30s metadata check: checks modifiedTime without downloading entire file
       async function pollDriveMetadata() {
         if (!accessToken || isSaveInFlight) return;
 
@@ -1197,11 +1582,8 @@
           if (metaRes.ok) {
             const meta = await metaRes.json();
             if (meta.modifiedTime && meta.modifiedTime !== lastKnownDriveModifiedTime) {
-              // Remote file changed on another device -> pull updates
               await pullRemoteFileContents(meta.modifiedTime);
             }
-          } else {
-            console.warn(`Drive poll error HTTP ${metaRes.status}`);
           }
         } catch (err) {
           console.warn('Drive metadata poll network notice:', err);
@@ -1222,6 +1604,223 @@
         } else {
           await pollDriveMetadata();
         }
+      }
+
+      // ==========================================
+      // BINARY ATTACHMENT UPLOAD & RENDERING
+      // ==========================================
+      attachBtn.addEventListener('click', () => filePicker.click());
+      filePicker.addEventListener('change', (e) => {
+        handleFiles(e.target.files);
+        filePicker.value = '';
+      });
+
+      // Drag & drop file handlers
+      dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.classList.add('drag-active');
+      });
+
+      dropZone.addEventListener('dragleave', () => {
+        dropZone.classList.remove('drag-active');
+      });
+
+      dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('drag-active');
+        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+          handleFiles(e.dataTransfer.files);
+        }
+      });
+
+      async function handleFiles(fileList) {
+        if (!fileList || fileList.length === 0) return;
+        if (!accessToken) {
+          alert('Please connect your Google Account first to upload and sync attachments.');
+          return;
+        }
+
+        for (const file of Array.from(fileList)) {
+          if (!file.type.startsWith('image/') && file.type !== 'application/pdf') {
+            continue;
+          }
+          await uploadAttachmentToDrive(file);
+        }
+      }
+
+      async function uploadAttachmentToDrive(file) {
+        setSyncStatus('Uploading file...', 'syncing');
+
+        try {
+          const metadata = {
+            name: file.name,
+            parents: ['appDataFolder']
+          };
+
+          const boundary = '-------attachmentBoundary' + Date.now();
+          const delimiter = `\r\n--${boundary}\r\n`;
+          const closeDelimiter = `\r\n--${boundary}--`;
+
+          const fileArrayBuffer = await file.arrayBuffer();
+
+          const metadataPart = new Blob([
+            delimiter +
+            'Content-Type: application/json; charset=UTF-8\r\n\r\n' +
+            JSON.stringify(metadata) +
+            delimiter +
+            `Content-Type: ${file.type || 'application/octet-stream'}\r\n\r\n`
+          ], { type: 'text/plain' });
+
+          const endPart = new Blob([closeDelimiter], { type: 'text/plain' });
+
+          const multipartBlob = new Blob([metadataPart, fileArrayBuffer, endPart], {
+            type: `multipart/related; boundary=${boundary}`
+          });
+
+          const uploadRes = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,mimeType,size', {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${accessToken}`
+            },
+            body: multipartBlob
+          });
+
+          if (!uploadRes.ok) {
+            throw new Error(`Upload failed with HTTP ${uploadRes.status}`);
+          }
+
+          const fileMeta = await uploadRes.json();
+
+          // Add locally and sync
+          attachments.unshift({
+            id: fileMeta.id,
+            name: file.name,
+            type: file.type,
+            size: file.size
+          });
+
+          localStorage.setItem(LOCAL_ATTACHMENTS_KEY, JSON.stringify(attachments));
+          renderAttachments();
+          triggerBackgroundSync();
+        } catch (err) {
+          console.error('Failed to upload attachment:', err);
+          setSyncStatus('Upload failed', 'error');
+        }
+      }
+
+      async function fetchAttachmentBlobUrl(fileId) {
+        if (blobUrlCache.has(fileId)) {
+          return blobUrlCache.get(fileId);
+        }
+
+        if (!accessToken) return null;
+
+        try {
+          const res = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
+            headers: { Authorization: `Bearer ${accessToken}` }
+          });
+
+          if (!res.ok) throw new Error(`Fetch blob failed: ${res.status}`);
+
+          const blob = await res.blob();
+          const objUrl = URL.createObjectURL(blob);
+          blobUrlCache.set(fileId, objUrl);
+          return objUrl;
+        } catch (e) {
+          console.error(`Error loading blob for ${fileId}:`, e);
+          return null;
+        }
+      }
+
+      async function deleteAttachment(fileId) {
+        if (!confirm('Are you sure you want to delete this attachment?')) return;
+
+        setSyncStatus('Deleting...', 'syncing');
+
+        // Optimistic UI Removal
+        attachments = attachments.filter(a => a.id !== fileId);
+        localStorage.setItem(LOCAL_ATTACHMENTS_KEY, JSON.stringify(attachments));
+        renderAttachments();
+
+        if (blobUrlCache.has(fileId)) {
+          URL.revokeObjectURL(blobUrlCache.get(fileId));
+          blobUrlCache.delete(fileId);
+        }
+
+        try {
+          if (accessToken) {
+            await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}`, {
+              method: 'DELETE',
+              headers: { Authorization: `Bearer ${accessToken}` }
+            });
+          }
+          triggerBackgroundSync();
+        } catch (err) {
+          console.error('Delete attachment error:', err);
+        }
+      }
+
+      function renderAttachments() {
+        attachmentsRail.innerHTML = '';
+
+        if (!attachments || attachments.length === 0) {
+          return;
+        }
+
+        attachments.forEach(att => {
+          const card = document.createElement('div');
+          card.className = 'attachment-card';
+
+          const delBtn = document.createElement('button');
+          delBtn.className = 'attachment-del-btn';
+          delBtn.innerHTML = '&times;';
+          delBtn.type = 'button';
+          delBtn.title = 'Delete attachment';
+          delBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            deleteAttachment(att.id);
+          });
+          card.appendChild(delBtn);
+
+          if (att.type && att.type.startsWith('image/')) {
+            const img = document.createElement('img');
+            img.className = 'attachment-thumb';
+            img.alt = att.name;
+            img.title = `${att.name} (Click to zoom)`;
+            img.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 24 24" fill="%23163252"><rect width="24" height="24"/></svg>';
+
+            fetchAttachmentBlobUrl(att.id).then(url => {
+              if (url) {
+                img.src = url;
+                img.addEventListener('click', () => openLightbox(url));
+              }
+            });
+
+            card.appendChild(img);
+          } else {
+            // PDF Item Badge
+            const link = document.createElement('a');
+            link.className = 'pdf-badge';
+            link.target = '_blank';
+            link.rel = 'noopener noreferrer';
+            link.title = `View PDF: ${att.name}`;
+
+            link.innerHTML = `
+              <span class="pdf-icon">📄</span>
+              <span class="pdf-title">${escapeHtml(att.name)}</span>
+            `;
+
+            fetchAttachmentBlobUrl(att.id).then(url => {
+              if (url) {
+                link.href = url;
+              }
+            });
+
+            card.appendChild(link);
+          }
+
+          attachmentsRail.appendChild(card);
+        });
       }
 
       // ==========================================
@@ -1447,6 +2046,7 @@
       window.addEventListener('DOMContentLoaded', () => {
         initDragAndDrop();
         renderTasks();
+        renderAttachments();
 
         if (accessToken) {
           setLoggedInUI(currentUserEmail);
@@ -1457,14 +2057,12 @@
 
         initGoogleAuth();
 
-        // 30-second silent background poll for remote cross-device updates
         setInterval(() => {
           if (accessToken && !isSaveInFlight) {
             pollDriveMetadata();
           }
         }, 30000);
 
-        // 3-minute Gmail feed auto-refresh
         setInterval(() => {
           if (accessToken) {
             fetchRecentEmails();
