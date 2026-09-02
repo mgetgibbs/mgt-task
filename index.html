@@ -87,6 +87,7 @@
 
       .quick-links {
         display: flex;
+        align-items: center;
         gap: 10px;
         flex-wrap: wrap;
       }
@@ -110,6 +111,37 @@
         border-color: var(--primary-2);
         color: #ffffff;
         transform: translateY(-1px);
+      }
+
+      /* Layout Lock / Unlock Pill Button */
+      .lock-toggle-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 16px;
+        background: rgba(12, 25, 44, 0.85);
+        border: 1px solid rgba(56, 189, 248, 0.28);
+        border-radius: 12px;
+        color: #bae6fd;
+        font-size: 0.88rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        user-select: none;
+      }
+
+      .lock-toggle-btn:hover {
+        background: rgba(2, 132, 199, 0.35);
+        border-color: var(--primary-2);
+        color: #ffffff;
+        transform: translateY(-1px);
+      }
+
+      .lock-toggle-btn.unlocked {
+        background: rgba(2, 132, 199, 0.35);
+        border-color: var(--primary-2);
+        color: #ffffff;
+        box-shadow: 0 0 14px rgba(56, 189, 248, 0.35);
       }
 
       .workspace-grid {
@@ -165,6 +197,15 @@
 
       .card-drag-handle:active {
         cursor: grabbing;
+      }
+
+      /* When locked: hide grip handles and reset drag cursor across workspace */
+      .workspace-grid.layout-locked .card-drag-handle {
+        display: none !important;
+      }
+
+      .workspace-grid.layout-locked .column-card {
+        cursor: default !important;
       }
 
       .drag-dots {
@@ -971,7 +1012,8 @@
           gap: 8px;
         }
 
-        .quick-btn {
+        .quick-btn,
+        .lock-toggle-btn {
           flex: 1 1 auto;
           justify-content: center;
           padding: 8px 10px;
@@ -994,7 +1036,7 @@
         }
 
         .card-drag-handle {
-          display: none;
+          display: none !important;
         }
 
         .card-header {
@@ -1061,6 +1103,9 @@
         </div>
 
         <div class="quick-links">
+          <button id="lockToggleBtn" class="lock-toggle-btn" type="button" title="Lock/Unlock column reordering">
+            <span id="lockIcon">🔒</span> <span id="lockLabel">Locked</span>
+          </button>
           <a href="https://gemini.google.com" target="_blank" rel="noopener noreferrer" class="quick-btn">Gemini</a>
           <a href="https://chatgpt.com" target="_blank" rel="noopener noreferrer" class="quick-btn">ChatGPT</a>
           <a href="https://mail.google.com" target="_blank" rel="noopener noreferrer" class="quick-btn">Gmail</a>
@@ -1068,9 +1113,9 @@
         </div>
       </header>
 
-      <div id="workspaceGrid" class="workspace-grid">
+      <div id="workspaceGrid" class="workspace-grid layout-locked">
         <!-- 1. Task Planner with Unified Search-Bar Composer -->
-        <section id="card-tasks" class="column-card" draggable="true" data-card-id="tasks">
+        <section id="card-tasks" class="column-card" draggable="false" data-card-id="tasks">
           <div class="card-drag-handle" title="Drag to reorder column">
             <span class="drag-dots"></span>
           </div>
@@ -1108,7 +1153,7 @@
         </section>
 
         <!-- 2. Auto-saving Scratchpad with Full Document Attachments -->
-        <aside id="card-notes" class="column-card" draggable="true" data-card-id="notes">
+        <aside id="card-notes" class="column-card" draggable="false" data-card-id="notes">
           <div class="card-drag-handle" title="Drag to reorder column">
             <span class="drag-dots"></span>
           </div>
@@ -1144,7 +1189,7 @@
         </aside>
 
         <!-- 3. Live Gmail Feed -->
-        <section id="card-gmail" class="column-card" draggable="true" data-card-id="gmail">
+        <section id="card-gmail" class="column-card" draggable="false" data-card-id="gmail">
           <div class="card-drag-handle" title="Drag to reorder column">
             <span class="drag-dots"></span>
           </div>
@@ -1183,6 +1228,7 @@
       const SESSION_TOKEN_KEY = 'mgt_session_access_token';
       const SESSION_USER_KEY = 'mgt_session_user_email';
       const COLUMN_ORDER_KEY = 'mgt_column_order';
+      const LAYOUT_LOCK_KEY = 'mgt_layout_locked';
       const LOCAL_TASKS_KEY = 'mgt_local_tasks';
       const LOCAL_NOTES_KEY = 'mgt_local_notes';
       const LOCAL_ATTACHMENTS_KEY = 'mgt_local_attachments';
@@ -1198,6 +1244,9 @@
       let pendingSaveQueued = false;
       let silentRefreshTimer = null;
 
+      // Layout Lock State (Defaults to true/Locked)
+      let isLayoutLocked = localStorage.getItem(LAYOUT_LOCK_KEY) !== 'false';
+
       // In-flight Retry Queue for 401s
       let pendingRetryQueue = [];
 
@@ -1205,6 +1254,10 @@
 
       // DOM Elements
       const workspaceGrid = document.getElementById('workspaceGrid');
+      const lockToggleBtn = document.getElementById('lockToggleBtn');
+      const lockIcon = document.getElementById('lockIcon');
+      const lockLabel = document.getElementById('lockLabel');
+
       const authBtn = document.getElementById('authBtn');
       const refreshBtn = document.getElementById('refreshBtn');
       const signOutBtn = document.getElementById('signOutBtn');
@@ -1252,6 +1305,32 @@
       let currentFilter = 'all';
 
       // ==========================================
+      // LAYOUT LOCK / UNLOCK SYSTEM
+      // ==========================================
+      function updateLayoutLockUI() {
+        if (isLayoutLocked) {
+          workspaceGrid.classList.add('layout-locked');
+          lockToggleBtn.classList.remove('unlocked');
+          lockIcon.textContent = '🔒';
+          lockLabel.textContent = 'Locked';
+          lockToggleBtn.title = 'Layout is locked. Click to unlock column reordering.';
+        } else {
+          workspaceGrid.classList.remove('layout-locked');
+          lockToggleBtn.classList.add('unlocked');
+          lockIcon.textContent = '🔓';
+          lockLabel.textContent = 'Unlocked';
+          lockToggleBtn.title = 'Layout is unlocked. Click to lock column layout.';
+        }
+        configureResponsiveDraggable();
+      }
+
+      lockToggleBtn.addEventListener('click', () => {
+        isLayoutLocked = !isLayoutLocked;
+        localStorage.setItem(LAYOUT_LOCK_KEY, String(isLayoutLocked));
+        updateLayoutLockUI();
+      });
+
+      // ==========================================
       // 401 EXPIRY INTERCEPTOR & SESSION MANAGEMENT
       // ==========================================
       function handle401Error(retryAction) {
@@ -1260,14 +1339,10 @@
           pendingRetryQueue.push(retryAction);
         }
 
-        // Clear expired token
         accessToken = null;
         localStorage.removeItem(SESSION_TOKEN_KEY);
 
-        // Show clickable session expired notification
         setSessionExpiredUI();
-
-        // Attempt silent renewal in the background first
         silentlyRenewToken();
       }
 
@@ -1374,22 +1449,23 @@
 
       function configureResponsiveDraggable() {
         const isMobile = window.innerWidth <= 768;
+        const canDrag = !isLayoutLocked && !isMobile;
         const cards = document.querySelectorAll('.column-card');
         cards.forEach(card => {
-          card.setAttribute('draggable', isMobile ? 'false' : 'true');
+          card.setAttribute('draggable', canDrag ? 'true' : 'false');
         });
       }
 
       function initDragAndDrop() {
         restoreColumnOrder();
-        configureResponsiveDraggable();
+        updateLayoutLockUI();
         window.addEventListener('resize', configureResponsiveDraggable);
 
         const cards = document.querySelectorAll('.column-card');
 
         cards.forEach(card => {
           card.addEventListener('dragstart', (e) => {
-            if (window.innerWidth <= 768) {
+            if (isLayoutLocked || window.innerWidth <= 768) {
               e.preventDefault();
               return;
             }
@@ -1415,7 +1491,7 @@
           });
 
           card.addEventListener('dragover', (e) => {
-            if (window.innerWidth <= 768) return;
+            if (isLayoutLocked || window.innerWidth <= 768) return;
             e.preventDefault();
             e.dataTransfer.dropEffect = 'move';
             if (draggedCard && draggedCard !== card) {
@@ -1428,7 +1504,7 @@
           });
 
           card.addEventListener('drop', (e) => {
-            if (window.innerWidth <= 768) return;
+            if (isLayoutLocked || window.innerWidth <= 768) return;
             e.preventDefault();
             card.classList.remove('drag-over');
 
@@ -1515,7 +1591,6 @@
               await fetchUserProfileEmail();
               setLoggedInUI(currentUserEmail);
 
-              // Re-run any in-flight requests that encountered 401s
               const retries = [...pendingRetryQueue];
               pendingRetryQueue = [];
               retries.forEach((retryFn) => {
@@ -1526,7 +1601,6 @@
                 }
               });
 
-              // Fresh synchronization
               await syncFromDriveAppData(true);
               fetchRecentEmails();
             }
@@ -2560,6 +2634,22 @@
         updateStats();
       }
 
+      function addTaskDirect(textVal, linkVal = null) {
+        if (!textVal) return;
+        const newTask = {
+          id: crypto.randomUUID(),
+          text: textVal,
+          link: linkVal ? sanitizeUrl(linkVal) : null,
+          completed: false,
+          createdAt: new Date().toISOString()
+        };
+
+        tasks.unshift(newTask);
+        localStorage.setItem(LOCAL_TASKS_KEY, JSON.stringify(tasks));
+        renderTasks();
+        triggerBackgroundSync();
+      }
+
       function addTask() {
         let textVal = taskInput.value.trim();
         let linkVal = taskLinkInput.value.trim();
@@ -2575,26 +2665,11 @@
           }
         }
 
-        if (linkVal) {
-          linkVal = sanitizeUrl(linkVal);
-        }
+        addTaskDirect(textVal, linkVal);
 
-        const newTask = {
-          id: crypto.randomUUID(),
-          text: textVal,
-          link: linkVal || null,
-          completed: false,
-          createdAt: new Date().toISOString()
-        };
-
-        tasks.unshift(newTask);
         taskInput.value = '';
         taskLinkInput.value = '';
         taskInput.focus();
-
-        localStorage.setItem(LOCAL_TASKS_KEY, JSON.stringify(tasks));
-        renderTasks();
-        triggerBackgroundSync();
       }
 
       function toggleTask(taskId) {
