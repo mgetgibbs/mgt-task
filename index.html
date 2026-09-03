@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>MGT Daily Planner</title>
+    <title>MGT Workspace</title>
     <!-- Google Identity Services client script -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
@@ -113,7 +113,6 @@
         transform: translateY(-1px);
       }
 
-      /* Layout Lock / Unlock Pill Button */
       .lock-toggle-btn {
         display: inline-flex;
         align-items: center;
@@ -199,7 +198,6 @@
         cursor: grabbing;
       }
 
-      /* When locked: hide grip handles and reset drag cursor across workspace */
       .workspace-grid.layout-locked .card-drag-handle {
         display: none !important;
       }
@@ -888,14 +886,18 @@
       .feed-container::-webkit-scrollbar,
       .list::-webkit-scrollbar,
       .notepad-area::-webkit-scrollbar,
-      .attachments-rail::-webkit-scrollbar {
+      .attachments-rail::-webkit-scrollbar,
+      .comments-feed::-webkit-scrollbar,
+      .dm-messages-box::-webkit-scrollbar {
         width: 6px;
       }
 
       .feed-container::-webkit-scrollbar-track,
       .list::-webkit-scrollbar-track,
       .notepad-area::-webkit-scrollbar-track,
-      .attachments-rail::-webkit-scrollbar-track {
+      .attachments-rail::-webkit-scrollbar-track,
+      .comments-feed::-webkit-scrollbar-track,
+      .dm-messages-box::-webkit-scrollbar-track {
         background: rgba(8, 18, 33, 0.5);
         border-radius: 8px;
       }
@@ -903,7 +905,9 @@
       .feed-container::-webkit-scrollbar-thumb,
       .list::-webkit-scrollbar-thumb,
       .notepad-area::-webkit-scrollbar-thumb,
-      .attachments-rail::-webkit-scrollbar-thumb {
+      .attachments-rail::-webkit-scrollbar-thumb,
+      .comments-feed::-webkit-scrollbar-thumb,
+      .dm-messages-box::-webkit-scrollbar-thumb {
         background: rgba(56, 189, 248, 0.28);
         border-radius: 8px;
       }
@@ -911,7 +915,9 @@
       .feed-container::-webkit-scrollbar-thumb:hover,
       .list::-webkit-scrollbar-thumb:hover,
       .notepad-area::-webkit-scrollbar-thumb:hover,
-      .attachments-rail::-webkit-scrollbar-thumb:hover {
+      .attachments-rail::-webkit-scrollbar-thumb:hover,
+      .comments-feed::-webkit-scrollbar-thumb:hover,
+      .dm-messages-box::-webkit-scrollbar-thumb:hover {
         background: rgba(56, 189, 248, 0.5);
       }
 
@@ -975,6 +981,475 @@
         padding: 20px;
       }
 
+      /* ==========================================
+         ONLINE STATUS BAR & DIRECT MESSAGING (DM)
+         ========================================== */
+      .online-status-bar {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(8, 18, 33, 0.7);
+        border: 1px solid rgba(56, 189, 248, 0.15);
+        border-radius: 12px;
+        padding: 10px 14px;
+        margin-bottom: 14px;
+        overflow-x: auto;
+        font-size: 0.82rem;
+      }
+
+      .online-status-label {
+        color: #94a3b8;
+        font-weight: 600;
+        flex-shrink: 0;
+      }
+
+      .online-users-rail {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+
+      .online-user-pill {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: rgba(15, 35, 61, 0.8);
+        border: 1px solid rgba(56, 189, 248, 0.25);
+        border-radius: 10px;
+        padding: 4px 10px;
+        color: #bae6fd;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+
+      .online-user-pill:hover {
+        background: rgba(2, 132, 199, 0.3);
+        border-color: var(--primary-2);
+        color: #ffffff;
+      }
+
+      .online-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--success);
+        box-shadow: 0 0 6px var(--success);
+      }
+
+      /* Unread Badge on User Pill */
+      .unread-badge {
+        position: absolute;
+        top: -5px;
+        right: -5px;
+        background: #ef4444;
+        color: white;
+        border-radius: 50%;
+        width: 18px;
+        height: 18px;
+        font-size: 10px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 6px rgba(239, 68, 68, 0.5);
+      }
+
+      /* On-screen Toast Alert Banner */
+      .toast-banner {
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        background: linear-gradient(135deg, #0284c7, #38bdf8);
+        color: #031e38;
+        padding: 14px 20px;
+        border-radius: 14px;
+        font-weight: 700;
+        font-size: 0.9rem;
+        box-shadow: 0 10px 30px rgba(56, 189, 248, 0.4);
+        z-index: 99999;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        transform: translateY(120%);
+        transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      }
+
+      .toast-banner.active {
+        transform: translateY(0);
+      }
+
+      .toast-close {
+        background: rgba(3, 30, 56, 0.15);
+        border: none;
+        color: #031e38;
+        font-size: 1rem;
+        cursor: pointer;
+        border-radius: 50%;
+        width: 22px;
+        height: 22px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      /* DM Modal UI */
+      .dm-modal {
+        background: #0f233d;
+        border: 1px solid rgba(56, 189, 248, 0.3);
+        border-radius: 20px;
+        width: 100%;
+        max-width: 600px;
+        height: 520px;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7);
+        overflow: hidden;
+      }
+
+      .dm-messages-box {
+        flex: 1;
+        padding: 16px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        background: rgba(8, 18, 33, 0.6);
+      }
+
+      .dm-bubble {
+        max-width: 80%;
+        padding: 10px 14px;
+        border-radius: 12px;
+        font-size: 0.9rem;
+        line-height: 1.4;
+        overflow-wrap: anywhere;
+        word-break: break-word;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+
+      .dm-bubble.sent {
+        align-self: flex-end;
+        background: linear-gradient(135deg, rgba(2, 132, 199, 0.45), rgba(56, 189, 248, 0.25));
+        border: 1px solid rgba(56, 189, 248, 0.4);
+        border-radius: 14px 14px 2px 14px;
+        color: #f0f9ff;
+      }
+
+      .dm-bubble.received {
+        align-self: flex-start;
+        background: rgba(22, 50, 82, 0.85);
+        border: 1px solid rgba(56, 189, 248, 0.2);
+        border-radius: 14px 14px 14px 2px;
+        color: #f0f9ff;
+      }
+
+      .dm-bubble-time {
+        font-size: 0.7rem;
+        color: #94a3b8;
+        align-self: flex-end;
+        margin-top: 2px;
+      }
+
+      .dm-composer-bar {
+        padding: 12px 16px;
+        background: rgba(8, 18, 33, 0.95);
+        border-top: 1px solid rgba(56, 189, 248, 0.18);
+        display: flex;
+        gap: 8px;
+      }
+
+      .dm-composer-bar input[type="text"] {
+        flex: 1;
+        background: rgba(15, 35, 61, 0.8);
+        border: 1px solid rgba(56, 189, 248, 0.25);
+        border-radius: 10px;
+        padding: 10px 12px;
+        color: var(--text);
+        font-size: 0.9rem;
+        outline: none;
+      }
+
+      /* Shared Activity & Comments Section */
+      .comments-card {
+        background: rgba(12, 25, 44, 0.65);
+        border: 1px solid rgba(56, 189, 248, 0.2);
+        border-radius: 18px;
+        padding: 16px 20px 20px;
+        margin-top: 22px;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .comments-feed {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        max-height: 320px;
+        overflow-y: auto;
+        margin-bottom: 14px;
+        padding-right: 4px;
+      }
+
+      .comment-item {
+        background: rgba(22, 50, 82, 0.7);
+        border: 1px solid rgba(56, 189, 248, 0.15);
+        border-radius: 12px;
+        padding: 10px 14px;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 12px;
+      }
+
+      .comment-body {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        min-width: 0;
+        flex: 1;
+      }
+
+      .comment-meta {
+        font-size: 0.76rem;
+        color: #93c5fd;
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+
+      .comment-author {
+        font-weight: 700;
+        color: #bae6fd;
+        cursor: pointer;
+        transition: color 0.15s ease;
+      }
+
+      .comment-author:hover {
+        color: var(--primary-2);
+        text-decoration: underline;
+      }
+
+      .comment-text {
+        font-size: 0.92rem;
+        color: var(--text);
+        overflow-wrap: anywhere;
+        word-break: break-word;
+        line-height: 1.4;
+      }
+
+      .comment-delete-btn {
+        background: rgba(248, 113, 113, 0.15);
+        color: #fecaca;
+        border: 1px solid rgba(248, 113, 113, 0.3);
+        border-radius: 8px;
+        padding: 4px 8px;
+        font-size: 0.75rem;
+        cursor: pointer;
+        flex-shrink: 0;
+        transition: all 0.2s ease;
+      }
+
+      .comment-delete-btn:hover {
+        background: rgba(248, 113, 113, 0.3);
+        color: #ffffff;
+      }
+
+      .comment-composer {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        background: rgba(8, 18, 33, 0.85);
+        border: 1px solid rgba(56, 189, 248, 0.18);
+        border-radius: 14px;
+        padding: 12px;
+      }
+
+      .comment-user-indicator {
+        font-size: 0.8rem;
+        color: #a7f3d0;
+        font-weight: 600;
+      }
+
+      .comment-input-row {
+        display: flex;
+        gap: 8px;
+      }
+
+      .comment-input-row input[type="text"] {
+        flex: 1;
+        min-width: 0;
+        background: rgba(12, 25, 44, 0.85);
+        border: 1px solid rgba(56, 189, 248, 0.25);
+        border-radius: 10px;
+        padding: 10px 12px;
+        color: var(--text);
+        font-size: 0.9rem;
+        outline: none;
+      }
+
+      .comment-auth-notice {
+        color: #94a3b8;
+        font-size: 0.88rem;
+        text-align: center;
+        padding: 18px 12px;
+        background: rgba(8, 18, 33, 0.5);
+        border: 1px dashed rgba(56, 189, 248, 0.25);
+        border-radius: 12px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+      }
+
+      /* Admin & General Modal Styling */
+      .admin-modal-backdrop, .general-modal-backdrop, .dm-modal-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(3, 13, 26, 0.85);
+        backdrop-filter: blur(6px);
+        z-index: 9999;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 16px;
+      }
+
+      .admin-modal-backdrop.active, .general-modal-backdrop.active, .dm-modal-backdrop.active {
+        display: flex;
+      }
+
+      .admin-modal, .general-modal {
+        background: #0f233d;
+        border: 1px solid rgba(56, 189, 248, 0.3);
+        border-radius: 20px;
+        width: 100%;
+        max-width: 560px;
+        max-height: 90vh;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7);
+        overflow: hidden;
+      }
+
+      .admin-modal-header, .general-modal-header, .dm-modal-header {
+        padding: 18px 24px;
+        background: linear-gradient(135deg, rgba(2, 132, 199, 0.3), rgba(56, 189, 248, 0.1));
+        border-bottom: 1px solid rgba(56, 189, 248, 0.2);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .admin-modal-title, .general-modal-title, .dm-modal-title {
+        font-weight: 700;
+        font-size: 1.15rem;
+        color: #e0f2fe;
+      }
+
+      .admin-modal-close, .general-modal-close, .dm-modal-close {
+        background: rgba(56, 189, 248, 0.1);
+        border: 1px solid rgba(56, 189, 248, 0.25);
+        color: #bae6fd;
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 1.1rem;
+      }
+
+      .admin-modal-body, .general-modal-body {
+        padding: 20px 24px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        font-size: 0.92rem;
+        line-height: 1.5;
+        color: #cbd5e1;
+      }
+
+      .general-modal-body h3 {
+        margin: 0 0 4px 0;
+        color: #bae6fd;
+        font-size: 1rem;
+      }
+
+      .general-modal-body p {
+        margin: 0 0 12px 0;
+      }
+
+      .admin-section {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .admin-section-title {
+        font-weight: 600;
+        font-size: 0.95rem;
+        color: #93c5fd;
+        border-bottom: 1px solid rgba(56, 189, 248, 0.15);
+        padding-bottom: 6px;
+      }
+
+      .admin-row {
+        display: flex;
+        gap: 8px;
+      }
+
+      .admin-row input {
+        flex: 1;
+        background: rgba(8, 18, 33, 0.85);
+        border: 1px solid rgba(56, 189, 248, 0.25);
+        border-radius: 10px;
+        padding: 9px 12px;
+        color: var(--text);
+        font-size: 0.9rem;
+        outline: none;
+      }
+
+      .admin-list, .user-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        max-height: 160px;
+        overflow-y: auto;
+      }
+
+      .admin-list-item, .user-list-item {
+        background: rgba(8, 18, 33, 0.6);
+        border: 1px solid rgba(56, 189, 248, 0.15);
+        border-radius: 8px;
+        padding: 8px 12px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.88rem;
+        gap: 10px;
+      }
+
+      .user-nickname-input {
+        background: rgba(15, 35, 61, 0.8);
+        border: 1px solid rgba(56, 189, 248, 0.25);
+        border-radius: 6px;
+        padding: 5px 8px;
+        color: var(--text);
+        font-size: 0.84rem;
+        width: 140px;
+        outline: none;
+      }
+
       /* Responsive Layout Rules */
       @media (max-width: 1200px) {
         .workspace-grid { grid-template-columns: 1fr 1fr; }
@@ -1013,7 +1488,8 @@
         }
 
         .quick-btn,
-        .lock-toggle-btn {
+        .lock-toggle-btn,
+        .guide-btn {
           flex: 1 1 auto;
           justify-content: center;
           padding: 8px 10px;
@@ -1098,11 +1574,13 @@
     <main class="app">
       <header class="header">
         <div class="header-title-block">
-          <h1>MGT Daily Planner</h1>
+          <h1>MGT Workspace</h1>
           <div class="subtitle">Keep track of your priorities, quick notes, and live inbox feed.</div>
         </div>
 
         <div class="quick-links">
+          <button id="guideBtn" class="secondary-btn" type="button" title="How to Use Guide">📖 Guide</button>
+          <button id="adminPanelBtn" class="secondary-btn" type="button" style="display: none;" title="Open Admin Panel">⚙️ Admin Panel</button>
           <button id="lockToggleBtn" class="lock-toggle-btn" type="button" title="Lock/Unlock column reordering">
             <span id="lockIcon">🔒</span> <span id="lockLabel">Locked</span>
           </button>
@@ -1209,7 +1687,128 @@
           </div>
         </section>
       </div>
+
+      <!-- Shared Activity & Comments Section (Auth Gated) -->
+      <section class="comments-card">
+        <!-- "Who's Online" Presence Status Bar -->
+        <div id="onlineStatusBar" class="online-status-bar" style="display: none;">
+          <span class="online-status-label">🟢 Online:</span>
+          <div id="onlineUsersRail" class="online-users-rail"></div>
+        </div>
+
+        <div class="card-header" style="margin-bottom: 10px;">
+          <span class="card-title">Shared Activity & Comments</span>
+          <span id="commentCountBadge" class="stats"></span>
+        </div>
+
+        <div id="commentsContainer" style="display: none;">
+          <div id="commentsFeed" class="comments-feed"></div>
+          <div id="commentComposerContainer"></div>
+        </div>
+
+        <div id="commentAuthGate">
+          <div class="comment-auth-notice">
+            <span>🔐 Sign in with Google above to view and post comments.</span>
+            <button id="gateSignInBtn" class="primary-btn" type="button">Sign In / Register with Google</button>
+          </div>
+        </div>
+      </section>
     </main>
+
+    <!-- Welcome Splash Modal -->
+    <div id="welcomeModalBackdrop" class="general-modal-backdrop">
+      <div class="general-modal">
+        <div class="general-modal-header">
+          <span class="general-modal-title">✨ Welcome to MGT Workspace!</span>
+          <button id="welcomeModalClose" class="general-modal-close" type="button">&times;</button>
+        </div>
+        <div class="general-modal-body">
+          <p>Your all-in-one executive workspace for managing daily priorities, storing quick notes, reviewing live Gmail messages, and collaborating across desktop and mobile devices.</p>
+          <h3>Key Features:</h3>
+          <p>• <strong>Smart Task Planner:</strong> Add tasks and attach clickable web links.<br>
+             • <strong>Auto-Saving Scratchpad:</strong> Jot down ideas and attach Images, PDFs, and Office documents.<br>
+             • <strong>Cloud Synchronization:</strong> All your notes and tasks sync automatically via Google Drive AppData.<br>
+             • <strong>Live Activity & DMs:</strong> Sign in with Google to view inbox messages, see who's online, send direct messages, and chat with teammates.</p>
+          <div style="margin-top: 10px; display: flex; justify-content: space-between; align-items: center;">
+            <button id="welcomeSignInBtn" class="secondary-btn" type="button">Sign In / Register with Google</button>
+            <button id="welcomeBeginBtn" class="primary-btn" type="button">Okay / Let's Begin</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- How to Use Tutorial Modal -->
+    <div id="tutorialModalBackdrop" class="general-modal-backdrop">
+      <div class="general-modal">
+        <div class="general-modal-header">
+          <span class="general-modal-title">📖 MGT Workspace Guide & Tutorial</span>
+          <button id="tutorialModalClose" class="general-modal-close" type="button">&times;</button>
+        </div>
+        <div class="general-modal-body">
+          <h3>1. Connecting & Live Feed</h3>
+          <p>Click "Sign In / Register with Google" or "Connect Gmail" in the top-right corner to authenticate your Google account. This loads your recent inbox messages and unlocks the Shared Activity & Comments section.</p>
+          
+          <h3>2. Tasks & Scratchpad</h3>
+          <p>Use the unified task composer to create tasks with or without URLs. Drag-and-drop or use the paperclip icon to upload images, PDFs, Word, Excel, or PowerPoint files.</p>
+
+          <h3>3. Who's Online & Direct Messages</h3>
+          <p>See active workspace teammates in the online presence bar. Click on any teammate's name to open an offline-persisted Direct Message (PM) chat window.</p>
+
+          <h3>4. Layout Lock & Admin Controls</h3>
+          <p>Toggle the 🔒/🔓 Lock button in the header to switch between a fixed layout and an unlocked reorderable workspace. If signed in as an admin, use the Admin Panel to manage users and nicknames.</p>
+
+          <div style="margin-top: 10px; display: flex; justify-content: flex-end;">
+            <button id="tutorialGotItBtn" class="primary-btn" type="button">Got It</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Admin Panel Modal -->
+    <div id="adminModalBackdrop" class="admin-modal-backdrop">
+      <div class="admin-modal">
+        <div class="admin-modal-header">
+          <span class="admin-modal-title">⚙️ Admin Control Panel</span>
+          <button id="adminModalClose" class="admin-modal-close" type="button">&times;</button>
+        </div>
+        <div class="admin-modal-body">
+          <div class="admin-section">
+            <span class="admin-section-title">Manage Administrators</span>
+            <div class="admin-row">
+              <input type="text" id="newAdminEmailInput" placeholder="Enter Gmail address (e.g. user@gmail.com)" autocomplete="off" />
+              <button id="addAdminBtn" class="primary-btn" type="button">Add Admin</button>
+            </div>
+            <ul id="adminListContainer" class="admin-list"></ul>
+          </div>
+
+          <div class="admin-section">
+            <span class="admin-section-title">Manage User Nicknames</span>
+            <ul id="userNicknamesListContainer" class="user-list"></ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Direct Message (DM) Modal -->
+    <div id="dmModalBackdrop" class="dm-modal-backdrop">
+      <div class="dm-modal">
+        <div class="dm-modal-header">
+          <span id="dmModalTitle" class="dm-modal-title">Direct Message</span>
+          <button id="dmModalClose" class="dm-modal-close" type="button">&times;</button>
+        </div>
+        <div id="dmMessagesBox" class="dm-messages-box"></div>
+        <div class="dm-composer-bar">
+          <input type="text" id="dmInput" placeholder="Type a direct message..." maxlength="300" autocomplete="off" />
+          <button id="dmSendBtn" class="primary-btn" type="button">Send</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- On-Screen Toast Alert Banner -->
+    <div id="toastBanner" class="toast-banner">
+      <span id="toastText">New message received!</span>
+      <button id="toastClose" class="toast-close" type="button">&times;</button>
+    </div>
 
     <!-- Lightbox Modal for Attachment Viewing -->
     <div id="lightboxModal" class="lightbox-modal">
@@ -1223,15 +1822,22 @@
       // ==========================================
       const CLIENT_ID = '912308604808-p1nkq6drca0mvt60ipp9u1bpj9bh5iud.apps.googleusercontent.com';
       const OAUTH_SCOPES = 'https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/drive.appdata';
-      const CLOUD_SYNC_FILENAME = 'mgt_dashboard_data.json';
+      const CLOUD_SYNC_FILENAME = 'mgt_workspace_data.json';
+      const INITIAL_OWNER_EMAIL = 'mgetgibbs@gmail.com';
       
       const SESSION_TOKEN_KEY = 'mgt_session_access_token';
       const SESSION_USER_KEY = 'mgt_session_user_email';
       const COLUMN_ORDER_KEY = 'mgt_column_order';
       const LAYOUT_LOCK_KEY = 'mgt_layout_locked';
+      const WELCOME_SEEN_KEY = 'mgt_welcome_seen';
       const LOCAL_TASKS_KEY = 'mgt_local_tasks';
       const LOCAL_NOTES_KEY = 'mgt_local_notes';
       const LOCAL_ATTACHMENTS_KEY = 'mgt_local_attachments';
+      const LOCAL_COMMENTS_KEY = 'mgt_local_comments';
+      const LOCAL_DMS_KEY = 'mgt_local_dms';
+      const LOCAL_ADMINS_KEY = 'mgt_admin_list';
+      const LOCAL_NICKNAMES_KEY = 'mgt_user_nicknames';
+      const LOCAL_PRESENCE_KEY = 'mgt_user_presence';
 
       let tokenClient = null;
       let isGisReady = false;
@@ -1243,20 +1849,21 @@
       let isSaveInFlight = false;
       let pendingSaveQueued = false;
       let silentRefreshTimer = null;
+      let presenceHeartbeatInterval = null;
 
-      // Layout Lock State (Defaults to true/Locked)
       let isLayoutLocked = localStorage.getItem(LAYOUT_LOCK_KEY) !== 'false';
-
-      // In-flight Retry Queue for 401s
       let pendingRetryQueue = [];
-
       const blobUrlCache = new Map();
+      let activeDmRecipient = null; // Email of user currently chatted with in DM modal
+      let lastSeenDmCount = 0; // Track unread notifications
 
       // DOM Elements
       const workspaceGrid = document.getElementById('workspaceGrid');
       const lockToggleBtn = document.getElementById('lockToggleBtn');
       const lockIcon = document.getElementById('lockIcon');
       const lockLabel = document.getElementById('lockLabel');
+      const adminPanelBtn = document.getElementById('adminPanelBtn');
+      const guideBtn = document.getElementById('guideBtn');
 
       const authBtn = document.getElementById('authBtn');
       const refreshBtn = document.getElementById('refreshBtn');
@@ -1278,6 +1885,43 @@
       const filePicker = document.getElementById('filePicker');
       const attachBtn = document.getElementById('attachBtn');
       const attachmentsRail = document.getElementById('attachmentsRail');
+
+      const commentsFeed = document.getElementById('commentsFeed');
+      const commentCountBadge = document.getElementById('commentCountBadge');
+      const commentAuthGate = document.getElementById('commentAuthGate');
+      const commentsContainer = document.getElementById('commentsContainer');
+      const commentComposerContainer = document.getElementById('commentComposerContainer');
+      const onlineStatusBar = document.getElementById('onlineStatusBar');
+      const onlineUsersRail = document.getElementById('onlineUsersRail');
+      const gateSignInBtn = document.getElementById('gateSignInBtn');
+
+      // Modals DOM Elements
+      const welcomeModalBackdrop = document.getElementById('welcomeModalBackdrop');
+      const welcomeModalClose = document.getElementById('welcomeModalClose');
+      const welcomeBeginBtn = document.getElementById('welcomeBeginBtn');
+      const welcomeSignInBtn = document.getElementById('welcomeSignInBtn');
+
+      const tutorialModalBackdrop = document.getElementById('tutorialModalBackdrop');
+      const tutorialModalClose = document.getElementById('tutorialModalClose');
+      const tutorialGotItBtn = document.getElementById('tutorialGotItBtn');
+
+      const adminModalBackdrop = document.getElementById('adminModalBackdrop');
+      const adminModalClose = document.getElementById('adminModalClose');
+      const newAdminEmailInput = document.getElementById('newAdminEmailInput');
+      const addAdminBtn = document.getElementById('addAdminBtn');
+      const adminListContainer = document.getElementById('adminListContainer');
+      const userNicknamesListContainer = document.getElementById('userNicknamesListContainer');
+
+      const dmModalBackdrop = document.getElementById('dmModalBackdrop');
+      const dmModalClose = document.getElementById('dmModalClose');
+      const dmModalTitle = document.getElementById('dmModalTitle');
+      const dmMessagesBox = document.getElementById('dmMessagesBox');
+      const dmInput = document.getElementById('dmInput');
+      const dmSendBtn = document.getElementById('dmSendBtn');
+
+      const toastBanner = document.getElementById('toastBanner');
+      const toastText = document.getElementById('toastText');
+      const toastClose = document.getElementById('toastClose');
 
       const lightboxModal = document.getElementById('lightboxModal');
       const lightboxImg = document.getElementById('lightboxImg');
@@ -1301,8 +1945,453 @@
         attachments = [];
       }
 
+      let comments = [];
+      try {
+        comments = JSON.parse(localStorage.getItem(LOCAL_COMMENTS_KEY)) || [];
+      } catch {
+        comments = [];
+      }
+
+      let directMessages = [];
+      try {
+        directMessages = JSON.parse(localStorage.getItem(LOCAL_DMS_KEY)) || [];
+        lastSeenDmCount = directMessages.length;
+      } catch {
+        directMessages = [];
+      }
+
+      let presenceMap = {};
+      try {
+        presenceMap = JSON.parse(localStorage.getItem(LOCAL_PRESENCE_KEY)) || {};
+      } catch {
+        presenceMap = {};
+      }
+
+      let admins = [];
+      try {
+        admins = JSON.parse(localStorage.getItem(LOCAL_ADMINS_KEY)) || [INITIAL_OWNER_EMAIL];
+      } catch {
+        admins = [INITIAL_OWNER_EMAIL];
+      }
+
+      let nicknames = {};
+      try {
+        nicknames = JSON.parse(localStorage.getItem(LOCAL_NICKNAMES_KEY)) || {};
+      } catch {
+        nicknames = {};
+      }
+
       quickNotes.value = localStorage.getItem(LOCAL_NOTES_KEY) || '';
       let currentFilter = 'all';
+
+      // ==========================================
+      // SIGN IN / REGISTER TRIGGERS
+      // ==========================================
+      function triggerSignIn() {
+        if (!isGisReady || !tokenClient) {
+          setTimeout(triggerSignIn, 300);
+          return;
+        }
+        tokenClient.requestAccessToken({ prompt: 'consent' });
+      }
+
+      gateSignInBtn.addEventListener('click', triggerSignIn);
+      welcomeSignInBtn.addEventListener('click', () => {
+        closeWelcomeModal();
+        triggerSignIn();
+      });
+
+      // ==========================================
+      // TOAST NOTIFICATIONS & UNREAD COUNTS
+      // ==========================================
+      function showToast(message) {
+        toastText.textContent = message;
+        toastBanner.classList.add('active');
+        setTimeout(() => {
+          toastBanner.classList.remove('active');
+        }, 5000);
+      }
+
+      toastClose.addEventListener('click', () => {
+        toastBanner.classList.remove('active');
+      });
+
+      function checkNewDmNotifications(newMessages) {
+        if (!currentUserEmail) return;
+        const myEmail = currentUserEmail.toLowerCase();
+        
+        // Count messages addressed to me
+        const incoming = newMessages.filter(m => m.recipient === myEmail);
+        if (incoming.length > lastSeenDmCount) {
+          const latest = incoming[incoming.length - 1];
+          const senderName = getDisplayName(latest.sender);
+          showToast(`💬 New direct message from ${senderName}`);
+        }
+        lastSeenDmCount = incoming.length;
+      }
+
+      // ==========================================
+      // PRESENCE HEARTBEAT & ONLINE STATUS TRACKER
+      // ==========================================
+      function startPresenceHeartbeat() {
+        if (!currentUserEmail) return;
+        
+        const updatePresence = () => {
+          if (!currentUserEmail) return;
+          presenceMap[currentUserEmail.toLowerCase()] = Date.now();
+          localStorage.setItem(LOCAL_PRESENCE_KEY, JSON.stringify(presenceMap));
+          renderOnlineUsers();
+          triggerBackgroundSync();
+        };
+
+        updatePresence();
+        if (presenceHeartbeatInterval) clearInterval(presenceHeartbeatInterval);
+        presenceHeartbeatInterval = setInterval(updatePresence, 20000);
+      }
+
+      function getDisplayName(email) {
+        if (!email) return 'User';
+        const cleanEmail = email.toLowerCase().trim();
+        if (nicknames[cleanEmail]) {
+          return nicknames[cleanEmail];
+        }
+        return email;
+      }
+
+      function renderOnlineUsers() {
+        if (!currentUserEmail || !accessToken) {
+          onlineStatusBar.style.display = 'none';
+          return;
+        }
+
+        onlineStatusBar.style.display = 'flex';
+        onlineUsersRail.innerHTML = '';
+
+        const now = Date.now();
+        const activeThreshold = 60000;
+        let onlineCount = 0;
+        const myEmail = currentUserEmail.toLowerCase();
+
+        Object.entries(presenceMap).forEach(([email, lastSeen]) => {
+          if (now - lastSeen < activeThreshold) {
+            onlineCount++;
+            const pill = document.createElement('div');
+            pill.className = 'online-user-pill';
+            
+            const dot = document.createElement('span');
+            dot.className = 'online-dot';
+            pill.appendChild(dot);
+
+            const nameSpan = document.createElement('span');
+            const displayName = getDisplayName(email);
+            nameSpan.textContent = email === myEmail ? `${displayName} (You)` : displayName;
+            pill.appendChild(nameSpan);
+
+            // Unread badge calculation for this user
+            const unreadCount = directMessages.filter(m => m.sender === email && m.recipient === myEmail && !m.read).length;
+            if (unreadCount > 0) {
+              const badge = document.createElement('span');
+              badge.className = 'unread-badge';
+              badge.textContent = unreadCount;
+              pill.appendChild(badge);
+            }
+
+            if (email !== myEmail) {
+              pill.title = `Click to message ${displayName}`;
+              pill.addEventListener('click', () => {
+                // Mark messages from this user as read
+                directMessages.forEach(m => {
+                  if (m.sender === email && m.recipient === myEmail) m.read = true;
+                });
+                localStorage.setItem(LOCAL_DMS_KEY, JSON.stringify(directMessages));
+                renderOnlineUsers();
+                openDmModal(email, displayName);
+              });
+            }
+
+            onlineUsersRail.appendChild(pill);
+          }
+        });
+
+        if (onlineCount === 0) {
+          const info = document.createElement('span');
+          info.style.color = '#64748b';
+          info.style.fontSize = '0.8rem';
+          info.textContent = 'No other users online right now.';
+          onlineUsersRail.appendChild(info);
+        }
+      }
+
+      // ==========================================
+      // OFFLINE DIRECT MESSAGING (PM) SYSTEM
+      // ==========================================
+      function openDmModal(recipientEmail, recipientName) {
+        activeDmRecipient = recipientEmail.toLowerCase();
+        dmModalTitle.textContent = `Direct Message with ${recipientName || recipientEmail}`;
+        renderDmConversation();
+        dmModalBackdrop.classList.add('active');
+        setTimeout(() => dmInput.focus(), 150);
+      }
+
+      function closeDmModal() {
+        dmModalBackdrop.classList.remove('active');
+        activeDmRecipient = null;
+        dmInput.value = '';
+        renderOnlineUsers();
+      }
+
+      dmModalClose.addEventListener('click', closeDmModal);
+      dmModalBackdrop.addEventListener('click', (e) => {
+        if (e.target === dmModalBackdrop) closeDmModal();
+      });
+
+      function sendDirectMessage() {
+        const textVal = dmInput.value.trim();
+        if (!textVal || !currentUserEmail || !activeDmRecipient) return;
+
+        const newDm = {
+          id: crypto.randomUUID(),
+          sender: currentUserEmail.toLowerCase(),
+          recipient: activeDmRecipient,
+          text: textVal,
+          read: false,
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        };
+
+        directMessages.push(newDm);
+        localStorage.setItem(LOCAL_DMS_KEY, JSON.stringify(directMessages));
+        renderDmConversation();
+        triggerBackgroundSync();
+        dmInput.value = '';
+      }
+
+      dmSendBtn.addEventListener('click', sendDirectMessage);
+      dmInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') sendDirectMessage();
+      });
+
+      function renderDmConversation() {
+        dmMessagesBox.innerHTML = '';
+        if (!currentUserEmail || !activeDmRecipient) return;
+
+        const myEmail = currentUserEmail.toLowerCase();
+        const thread = directMessages.filter(m => 
+          (m.sender === myEmail && m.recipient === activeDmRecipient) ||
+          (m.sender === activeDmRecipient && m.recipient === myEmail)
+        );
+
+        if (thread.length === 0) {
+          const empty = document.createElement('div');
+          empty.className = 'empty-feed';
+          empty.textContent = 'No messages yet. Send a direct message below!';
+          dmMessagesBox.appendChild(empty);
+          return;
+        }
+
+        thread.forEach(msg => {
+          const bubble = document.createElement('div');
+          bubble.className = `dm-bubble ${msg.sender === myEmail ? 'sent' : 'received'}`;
+
+          const textSpan = document.createElement('span');
+          textSpan.textContent = msg.text;
+          bubble.appendChild(textSpan);
+
+          const timeSpan = document.createElement('span');
+          timeSpan.className = 'dm-bubble-time';
+          timeSpan.textContent = msg.timestamp;
+          bubble.appendChild(timeSpan);
+
+          dmMessagesBox.appendChild(bubble);
+        });
+
+        dmMessagesBox.scrollTop = dmMessagesBox.scrollHeight;
+      }
+
+      // ==========================================
+      // MODAL POPUPS & TUTORIAL GUIDE
+      // ==========================================
+      function checkWelcomeSplash() {
+        const hasSeenWelcome = localStorage.getItem(WELCOME_SEEN_KEY);
+        if (!hasSeenWelcome) {
+          welcomeModalBackdrop.classList.add('active');
+        }
+      }
+
+      function closeWelcomeModal() {
+        localStorage.setItem(WELCOME_SEEN_KEY, 'true');
+        welcomeModalBackdrop.classList.remove('active');
+      }
+
+      welcomeModalClose.addEventListener('click', closeWelcomeModal);
+      welcomeBeginBtn.addEventListener('click', closeWelcomeModal);
+      welcomeModalBackdrop.addEventListener('click', (e) => {
+        if (e.target === welcomeModalBackdrop) closeWelcomeModal();
+      });
+
+      guideBtn.addEventListener('click', () => {
+        tutorialModalBackdrop.classList.add('active');
+      });
+
+      function closeTutorialModal() {
+        tutorialModalBackdrop.classList.remove('active');
+      }
+
+      tutorialModalClose.addEventListener('click', closeTutorialModal);
+      tutorialGotItBtn.addEventListener('click', closeTutorialModal);
+      tutorialModalBackdrop.addEventListener('click', (e) => {
+        if (e.target === tutorialModalBackdrop) closeTutorialModal();
+      });
+
+      // ==========================================
+      // ADMIN PANEL & PERMISSIONS SYSTEM
+      // ==========================================
+      function isUserAdmin(email) {
+        if (!email) return false;
+        return admins.map(a => a.toLowerCase()).includes(email.toLowerCase());
+      }
+
+      function updateAdminUI() {
+        if (currentUserEmail && isUserAdmin(currentUserEmail)) {
+          adminPanelBtn.style.display = 'inline-flex';
+        } else {
+          adminPanelBtn.style.display = 'none';
+          adminModalBackdrop.classList.remove('active');
+        }
+      }
+
+      adminPanelBtn.addEventListener('click', () => {
+        if (!currentUserEmail || !isUserAdmin(currentUserEmail)) {
+          alert('Access denied. Admin privileges required.');
+          return;
+        }
+        renderAdminModalContent();
+        adminModalBackdrop.classList.add('active');
+      });
+
+      adminModalClose.addEventListener('click', () => {
+        adminModalBackdrop.classList.remove('active');
+      });
+
+      adminModalBackdrop.addEventListener('click', (e) => {
+        if (e.target === adminModalBackdrop) {
+          adminModalBackdrop.classList.remove('active');
+        }
+      });
+
+      addAdminBtn.addEventListener('click', () => {
+        if (!currentUserEmail || !isUserAdmin(currentUserEmail)) return;
+        const newEmail = newAdminEmailInput.value.trim().toLowerCase();
+        if (!newEmail || !newEmail.includes('@')) {
+          alert('Please enter a valid email address.');
+          return;
+        }
+
+        if (!admins.map(a => a.toLowerCase()).includes(newEmail)) {
+          admins.push(newEmail);
+          localStorage.setItem(LOCAL_ADMINS_KEY, JSON.stringify(admins));
+          newAdminEmailInput.value = '';
+          renderAdminModalContent();
+          triggerBackgroundSync();
+          alert(`Successfully added ${newEmail} as an admin.`);
+        } else {
+          alert('This email is already an administrator.');
+        }
+      });
+
+      function renderAdminModalContent() {
+        adminListContainer.innerHTML = '';
+        admins.forEach(adminEmail => {
+          const li = document.createElement('li');
+          li.className = 'admin-list-item';
+          
+          const span = document.createElement('span');
+          span.textContent = adminEmail;
+          li.appendChild(span);
+
+          if (adminEmail.toLowerCase() !== INITIAL_OWNER_EMAIL.toLowerCase() && admins.length > 1) {
+            const removeBtn = document.createElement('button');
+            removeBtn.type = 'button';
+            removeBtn.className = 'comment-delete-btn';
+            removeBtn.textContent = 'Remove';
+            removeBtn.addEventListener('click', () => {
+              if (confirm(`Remove admin privileges from ${adminEmail}?`)) {
+                admins = admins.filter(a => a.toLowerCase() !== adminEmail.toLowerCase());
+                localStorage.setItem(LOCAL_ADMINS_KEY, JSON.stringify(admins));
+                renderAdminModalContent();
+                updateAdminUI();
+                triggerBackgroundSync();
+              }
+            });
+            li.appendChild(removeBtn);
+          } else {
+            const badge = document.createElement('span');
+            badge.style.fontSize = '0.75rem';
+            badge.style.color = '#93c5fd';
+            badge.textContent = '(Primary Owner)';
+            li.appendChild(badge);
+          }
+
+          adminListContainer.appendChild(li);
+        });
+
+        const uniqueUsers = new Set();
+        if (currentUserEmail) uniqueUsers.add(currentUserEmail.toLowerCase());
+        comments.forEach(c => {
+          if (c.authorEmail) uniqueUsers.add(c.authorEmail.toLowerCase());
+          else if (c.author && c.author.includes('@')) uniqueUsers.add(c.author.toLowerCase());
+        });
+        Object.keys(presenceMap).forEach(e => uniqueUsers.add(e));
+
+        userNicknamesListContainer.innerHTML = '';
+        if (uniqueUsers.size === 0) {
+          const empty = document.createElement('div');
+          empty.className = 'empty-feed';
+          empty.style.padding = '10px';
+          empty.textContent = 'No active users detected yet.';
+          userNicknamesListContainer.appendChild(empty);
+          return;
+        }
+
+        uniqueUsers.forEach(email => {
+          const li = document.createElement('li');
+          li.className = 'user-list-item';
+
+          const infoDiv = document.createElement('div');
+          infoDiv.style.display = 'flex';
+          infoDiv.style.flexDirection = 'column';
+          infoDiv.style.gap = '2px';
+
+          const emailSpan = document.createElement('span');
+          emailSpan.style.fontWeight = '600';
+          emailSpan.style.fontSize = '0.84rem';
+          emailSpan.textContent = email;
+          infoDiv.appendChild(emailSpan);
+
+          const input = document.createElement('input');
+          input.type = 'text';
+          input.className = 'user-nickname-input';
+          input.placeholder = 'Set nickname...';
+          input.value = nicknames[email] || '';
+          input.maxLength = 40;
+
+          input.addEventListener('input', () => {
+            const val = input.value.trim();
+            if (val) {
+              nicknames[email] = val;
+            } else {
+              delete nicknames[email];
+            }
+            localStorage.setItem(LOCAL_NICKNAMES_KEY, JSON.stringify(nicknames));
+            renderComments();
+            renderOnlineUsers();
+            triggerBackgroundSync();
+          });
+
+          li.appendChild(infoDiv);
+          li.appendChild(input);
+          userNicknamesListContainer.appendChild(li);
+        });
+      }
 
       // ==========================================
       // LAYOUT LOCK / UNLOCK SYSTEM
@@ -1357,6 +2446,11 @@
         authBtn.style.display = 'inline-flex';
         authBtn.textContent = 'Reconnect';
         refreshBtn.style.display = 'none';
+
+        currentUserEmail = null;
+        localStorage.removeItem(SESSION_USER_KEY);
+        updateAuthGateUI();
+        updateAdminUI();
       }
 
       function clearSessionExpiredUI() {
@@ -1614,6 +2708,9 @@
             silentlyRenewToken();
             syncFromDriveAppData(true);
             fetchRecentEmails();
+          } else {
+            updateAuthGateUI();
+            updateAdminUI();
           }
         } catch (err) {
           console.error('Error initializing Google Identity Services:', err);
@@ -1644,6 +2741,9 @@
             if (currentUserEmail) {
               plannerTitle.textContent = `Tasks (${currentUserEmail})`;
             }
+            updateAuthGateUI();
+            updateAdminUI();
+            startPresenceHeartbeat();
           }
         } catch (e) {
           console.error('Network failure fetching user profile:', e);
@@ -1663,6 +2763,9 @@
         if (email) {
           plannerTitle.textContent = `Tasks (${email})`;
         }
+        updateAuthGateUI();
+        updateAdminUI();
+        startPresenceHeartbeat();
       }
 
       function setLoggedOutUI() {
@@ -1678,6 +2781,12 @@
         plannerTitle.textContent = 'Daily Planner';
         setSyncStatus('Local storage', '');
         emailFeed.innerHTML = '<div class="empty-feed">Click "Connect Gmail" above to link your account and view recent emails.</div>';
+
+        currentUserEmail = null;
+        localStorage.removeItem(SESSION_USER_KEY);
+        if (presenceHeartbeatInterval) clearInterval(presenceHeartbeatInterval);
+        updateAuthGateUI();
+        updateAdminUI();
       }
 
       authBtn.addEventListener('click', () => {
@@ -1777,6 +2886,11 @@
             tasks: tasks,
             scratchpad: quickNotes.value,
             attachments: attachments,
+            comments: comments,
+            directMessages: directMessages,
+            presenceMap: presenceMap,
+            admins: admins,
+            nicknames: nicknames,
             clientTimestamp: Date.now()
           };
 
@@ -1873,6 +2987,11 @@
             tasks: tasks,
             scratchpad: quickNotes.value || '',
             attachments: attachments,
+            comments: comments,
+            directMessages: directMessages,
+            presenceMap: presenceMap,
+            admins: admins,
+            nicknames: nicknames,
             clientTimestamp: Date.now()
           };
 
@@ -1970,6 +3089,38 @@
               localStorage.setItem(LOCAL_ATTACHMENTS_KEY, JSON.stringify(attachments));
               renderAttachments();
             }
+
+            if (Array.isArray(cloudData.comments)) {
+              comments = cloudData.comments;
+              localStorage.setItem(LOCAL_COMMENTS_KEY, JSON.stringify(comments));
+              renderComments();
+            }
+
+            if (Array.isArray(cloudData.directMessages)) {
+              directMessages = cloudData.directMessages;
+              localStorage.setItem(LOCAL_DMS_KEY, JSON.stringify(directMessages));
+              checkNewDmNotifications(directMessages);
+              if (activeDmRecipient) renderDmConversation();
+            }
+
+            if (cloudData.presenceMap && typeof cloudData.presenceMap === 'object') {
+              presenceMap = cloudData.presenceMap;
+              localStorage.setItem(LOCAL_PRESENCE_KEY, JSON.stringify(presenceMap));
+              renderOnlineUsers();
+            }
+
+            if (Array.isArray(cloudData.admins)) {
+              admins = cloudData.admins;
+              localStorage.setItem(LOCAL_ADMINS_KEY, JSON.stringify(admins));
+              updateAdminUI();
+            }
+
+            if (cloudData.nicknames && typeof cloudData.nicknames === 'object') {
+              nicknames = cloudData.nicknames;
+              localStorage.setItem(LOCAL_NICKNAMES_KEY, JSON.stringify(nicknames));
+              renderComments();
+              renderOnlineUsers();
+            }
           }
           setSyncStatus('Synced with Google Cloud', 'saved');
         } catch (err) {
@@ -2027,6 +3178,170 @@
         } else {
           await pollDriveMetadata();
         }
+      }
+
+      // ==========================================
+      // SHARED ACTIVITY & COMMENTS ENGINE (AUTH GATED)
+      // ==========================================
+      function getDisplayName(email) {
+        if (!email) return 'User';
+        const cleanEmail = email.toLowerCase().trim();
+        if (nicknames[cleanEmail]) {
+          return nicknames[cleanEmail];
+        }
+        return email;
+      }
+
+      function updateAuthGateUI() {
+        const isLoggedIn = Boolean(accessToken && currentUserEmail);
+        if (isLoggedIn) {
+          commentsContainer.style.display = 'flex';
+          commentAuthGate.style.display = 'none';
+          renderCommentComposer();
+          renderComments();
+          renderOnlineUsers();
+        } else {
+          commentsContainer.style.display = 'none';
+          commentAuthGate.style.display = 'block';
+          commentCountBadge.textContent = '';
+          onlineStatusBar.style.display = 'none';
+        }
+      }
+
+      function renderCommentComposer() {
+        commentComposerContainer.innerHTML = '';
+        if (!accessToken || !currentUserEmail) return;
+
+        const composer = document.createElement('div');
+        composer.className = 'comment-composer';
+
+        const displayName = getDisplayName(currentUserEmail);
+        const userTag = document.createElement('div');
+        userTag.className = 'comment-user-indicator';
+        userTag.textContent = `Posting as: ${displayName} (${currentUserEmail})`;
+
+        const inputRow = document.createElement('div');
+        inputRow.className = 'comment-input-row';
+
+        const commentInput = document.createElement('input');
+        commentInput.type = 'text';
+        commentInput.id = 'commentInput';
+        commentInput.placeholder = 'Write a comment or update...';
+        commentInput.maxLength = 300;
+        commentInput.autocomplete = 'off';
+
+        const postBtn = document.createElement('button');
+        postBtn.type = 'button';
+        postBtn.className = 'primary-btn';
+        postBtn.textContent = 'Post';
+
+        const submitComment = () => {
+          const textVal = commentInput.value.trim();
+          if (!textVal) return;
+          if (!currentUserEmail) {
+            alert('You must be signed in to post.');
+            return;
+          }
+
+          const newComment = {
+            id: crypto.randomUUID(),
+            authorEmail: currentUserEmail.toLowerCase(),
+            text: textVal,
+            timestamp: new Date().toLocaleString()
+          };
+
+          comments.unshift(newComment);
+          localStorage.setItem(LOCAL_COMMENTS_KEY, JSON.stringify(comments));
+          renderComments();
+          triggerBackgroundSync();
+          commentInput.value = '';
+        };
+
+        postBtn.addEventListener('click', submitComment);
+        commentInput.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') submitComment();
+        });
+
+        inputRow.appendChild(commentInput);
+        inputRow.appendChild(postBtn);
+
+        composer.appendChild(userTag);
+        composer.appendChild(inputRow);
+        commentComposerContainer.appendChild(composer);
+      }
+
+      function renderComments() {
+        commentsFeed.innerHTML = '';
+        const count = comments.length;
+        commentCountBadge.textContent = count === 1 ? '1 comment' : `${count} comments`;
+
+        if (count === 0) {
+          const empty = document.createElement('div');
+          empty.className = 'empty-feed';
+          empty.textContent = 'No comments yet.';
+          commentsFeed.appendChild(empty);
+          return;
+        }
+
+        comments.forEach(comm => {
+          const item = document.createElement('div');
+          item.className = 'comment-item';
+
+          const body = document.createElement('div');
+          body.className = 'comment-body';
+
+          const meta = document.createElement('div');
+          meta.className = 'comment-meta';
+
+          const rawEmail = comm.authorEmail || comm.author || 'User';
+          const authorName = getDisplayName(rawEmail);
+
+          const author = document.createElement('span');
+          author.className = 'comment-author';
+          author.textContent = authorName;
+          author.title = `Click to direct message ${rawEmail}`;
+          author.addEventListener('click', () => {
+            if (currentUserEmail && rawEmail.toLowerCase() !== currentUserEmail.toLowerCase()) {
+              openDmModal(rawEmail, authorName);
+            }
+          });
+
+          const time = document.createElement('span');
+          time.textContent = `• ${comm.timestamp}`;
+
+          meta.appendChild(author);
+          meta.appendChild(time);
+
+          const text = document.createElement('div');
+          text.className = 'comment-text';
+          text.textContent = comm.text;
+
+          body.appendChild(meta);
+          body.appendChild(text);
+          item.appendChild(body);
+
+          // Render delete button ONLY if signed in user is an Admin
+          if (currentUserEmail && isUserAdmin(currentUserEmail)) {
+            const delBtn = document.createElement('button');
+            delBtn.type = 'button';
+            delBtn.className = 'comment-delete-btn';
+            delBtn.textContent = '🗑️ Delete';
+            delBtn.title = 'Delete comment';
+            delBtn.addEventListener('click', () => {
+              if (!currentUserEmail || !isUserAdmin(currentUserEmail)) {
+                alert('Permission denied. Admin privileges required.');
+                return;
+              }
+              comments = comments.filter(c => c.id !== comm.id);
+              localStorage.setItem(LOCAL_COMMENTS_KEY, JSON.stringify(comments));
+              renderComments();
+              triggerBackgroundSync();
+            });
+            item.appendChild(delBtn);
+          }
+
+          commentsFeed.appendChild(item);
+        });
       }
 
       // ==========================================
@@ -2725,6 +4040,9 @@
         initDragAndDrop();
         renderTasks();
         renderAttachments();
+        updateAuthGateUI();
+        updateAdminUI();
+        checkWelcomeSplash();
 
         if (accessToken) {
           setLoggedInUI(currentUserEmail);
