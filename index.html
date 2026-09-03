@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <title>MGT Workspace</title>
     <!-- Google Identity Services client script -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -22,6 +22,7 @@
 
       * {
         box-sizing: border-box;
+        -webkit-tap-highlight-color: transparent;
       }
 
       html, body {
@@ -41,7 +42,7 @@
           radial-gradient(circle at top, rgba(56, 189, 248, 0.2), transparent 45%),
           linear-gradient(160deg, #030d1a 0%, var(--bg) 100%);
         color: var(--text);
-        padding: 0 0 calc(48px + env(safe-area-inset-bottom, 0px)) 0;
+        padding: 0 0 calc(32px + env(safe-area-inset-bottom, 0px)) 0;
       }
 
       /* Notification Bar */
@@ -50,12 +51,12 @@
         background: linear-gradient(90deg, #0284c7, #0369a1, #0f233d);
         border-bottom: 1px solid rgba(56, 189, 248, 0.35);
         color: #f0f9ff;
-        padding: 10px 24px;
-        font-size: 0.88rem;
+        padding: 10px 16px;
+        font-size: 0.86rem;
         display: none;
         align-items: center;
         justify-content: space-between;
-        gap: 16px;
+        gap: 12px;
         box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
         z-index: 1000;
         animation: slideDown 0.3s ease;
@@ -73,7 +74,7 @@
       .notification-content {
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: 8px;
         flex: 1;
         min-width: 0;
       }
@@ -102,7 +103,8 @@
         border: 1px solid rgba(56, 189, 248, 0.3);
         color: #bae6fd;
         border-radius: 8px;
-        padding: 4px 10px;
+        padding: 6px 12px;
+        min-height: 32px;
         font-size: 0.78rem;
         font-weight: 600;
         cursor: pointer;
@@ -119,7 +121,7 @@
         width: 100%;
         display: flex;
         justify-content: center;
-        padding: 24px calc(24px + env(safe-area-inset-right, 0px)) 0 16px;
+        padding: 20px calc(16px + env(safe-area-inset-right, 0px)) 0 calc(16px + env(safe-area-inset-left, 0px));
       }
 
       .app {
@@ -130,29 +132,31 @@
         border-radius: 24px;
         box-shadow: 0 24px 80px var(--shadow);
         backdrop-filter: blur(14px);
-        overflow: hidden;
+        overflow: visible;
         margin-bottom: 20px;
       }
 
+      /* Unified Header */
       .header {
-        padding: 22px 32px 18px;
+        padding: 18px 24px;
         background: linear-gradient(135deg, rgba(2, 132, 199, 0.28), rgba(56, 189, 248, 0.1));
         border-bottom: 1px solid rgba(56, 189, 248, 0.15);
+        border-radius: 24px 24px 0 0;
         display: flex;
         justify-content: space-between;
         align-items: center;
         flex-wrap: wrap;
-        gap: 16px;
+        gap: 14px;
       }
 
       .header-title-block {
         min-width: 0;
-        flex: 1 1 280px;
+        flex: 1 1 220px;
       }
 
       h1 {
         margin: 0;
-        font-size: clamp(1.4rem, 2.8vw, 2.4rem);
+        font-size: clamp(1.3rem, 2.2vw, 2rem);
         letter-spacing: -0.04em;
         color: #e0f2fe;
         overflow-wrap: anywhere;
@@ -160,49 +164,85 @@
       }
 
       .subtitle {
-        margin-top: 5px;
+        margin-top: 3px;
         color: #93c5fd;
-        font-size: 0.92rem;
+        font-size: 0.86rem;
       }
 
-      .quick-links {
+      /* Navigation Cluster */
+      .nav-bar-cluster {
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: 8px;
         flex-wrap: wrap;
       }
 
-      .quick-btn {
+      .nav-group-divider {
+        width: 1px;
+        height: 24px;
+        background: rgba(56, 189, 248, 0.25);
+        margin: 0 4px;
+      }
+
+      .nav-link-btn {
         display: inline-flex;
         align-items: center;
-        padding: 8px 16px;
+        gap: 6px;
+        padding: 8px 14px;
+        min-height: 40px;
         background: rgba(12, 25, 44, 0.85);
         border: 1px solid rgba(56, 189, 248, 0.3);
         border-radius: 12px;
         color: #bae6fd;
-        text-decoration: none;
-        font-size: 0.88rem;
+        font-size: 0.84rem;
         font-weight: 600;
+        text-decoration: none;
+        cursor: pointer;
         transition: all 0.2s ease;
+        white-space: nowrap;
+        user-select: none;
       }
 
-      .quick-btn:hover {
+      .nav-link-btn:hover {
         background: rgba(2, 132, 199, 0.35);
         border-color: var(--primary-2);
         color: #ffffff;
         transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(56, 189, 248, 0.25);
+      }
+
+      .nav-link-btn:active {
+        transform: translateY(0);
+      }
+
+      .nav-link-btn.active {
+        background: rgba(2, 132, 199, 0.45);
+        border-color: var(--primary-2);
+        color: #ffffff;
+        box-shadow: 0 0 12px rgba(56, 189, 248, 0.35);
+      }
+
+      .nav-link-btn.ai-glow {
+        border-color: rgba(56, 189, 248, 0.45);
+        background: linear-gradient(135deg, rgba(12, 25, 44, 0.9), rgba(2, 132, 199, 0.25));
+      }
+
+      .nav-link-btn.ai-glow:hover {
+        box-shadow: 0 0 14px rgba(56, 189, 248, 0.45);
+        border-color: var(--primary-2);
       }
 
       .lock-toggle-btn {
         display: inline-flex;
         align-items: center;
         gap: 6px;
-        padding: 8px 16px;
+        padding: 8px 14px;
+        min-height: 40px;
         background: rgba(12, 25, 44, 0.85);
         border: 1px solid rgba(56, 189, 248, 0.28);
         border-radius: 12px;
         color: #bae6fd;
-        font-size: 0.88rem;
+        font-size: 0.84rem;
         font-weight: 600;
         cursor: pointer;
         transition: all 0.2s ease;
@@ -223,45 +263,6 @@
         box-shadow: 0 0 14px rgba(56, 189, 248, 0.35);
       }
 
-      /* View Categorizer Nav Tab Bar */
-      .view-nav-bar {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        padding: 12px 28px 0;
-        background: rgba(12, 25, 44, 0.4);
-        border-bottom: 1px solid rgba(56, 189, 248, 0.15);
-        overflow-x: auto;
-      }
-
-      .view-tab-btn {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        padding: 10px 18px;
-        background: transparent;
-        border: none;
-        border-bottom: 3px solid transparent;
-        border-radius: 8px 8px 0 0;
-        color: var(--muted);
-        font-weight: 600;
-        font-size: 0.92rem;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        white-space: nowrap;
-      }
-
-      .view-tab-btn:hover {
-        color: #e0f2fe;
-        background: rgba(56, 189, 248, 0.08);
-      }
-
-      .view-tab-btn.active {
-        color: #ffffff;
-        border-bottom-color: var(--primary-2);
-        background: rgba(56, 189, 248, 0.14);
-      }
-
       .tab-panel {
         display: block;
       }
@@ -273,8 +274,8 @@
       .workspace-grid {
         display: grid;
         grid-template-columns: 1.15fr 0.95fr 1.1fr;
-        gap: 22px;
-        padding: 24px 28px 28px;
+        gap: 20px;
+        padding: 22px 24px 18px;
         align-items: stretch;
       }
 
@@ -411,11 +412,11 @@
 
       .task-submit-btn {
         width: 100%;
-        min-height: 44px;
+        min-height: 46px;
         background: linear-gradient(135deg, var(--primary), var(--primary-2));
         color: #031e38;
         border: none;
-        border-radius: 11px;
+        border-radius: 12px;
         font-weight: 700;
         font-size: 0.92rem;
         display: inline-flex;
@@ -475,7 +476,7 @@
         padding: 0 16px;
         font-weight: 700;
         font-size: 0.88rem;
-        min-height: 38px;
+        min-height: 42px;
         display: inline-flex;
         align-items: center;
         justify-content: center;
@@ -487,10 +488,10 @@
         background: rgba(56, 189, 248, 0.12);
         color: #bae6fd;
         border: 1px solid rgba(56, 189, 248, 0.3);
-        padding: 6px 12px;
+        padding: 6px 14px;
         font-weight: 600;
         font-size: 0.84rem;
-        min-height: 36px;
+        min-height: 40px;
         display: inline-flex;
         align-items: center;
         justify-content: center;
@@ -506,10 +507,10 @@
         background: rgba(248, 113, 113, 0.15);
         color: #fecaca;
         border: 1px solid rgba(248, 113, 113, 0.3);
-        padding: 6px 12px;
+        padding: 6px 14px;
         font-weight: 600;
         font-size: 0.84rem;
-        min-height: 36px;
+        min-height: 40px;
         display: inline-flex;
         align-items: center;
         justify-content: center;
@@ -539,7 +540,8 @@
       .filter-btn {
         background: rgba(56, 189, 248, 0.08);
         color: var(--text);
-        padding: 7px 12px;
+        padding: 8px 14px;
+        min-height: 36px;
         font-size: 0.85rem;
       }
 
@@ -582,14 +584,14 @@
       .task.completed .task-text { text-decoration: line-through; color: #64748b; }
 
       .checkbox {
-        width: 20px;
-        height: 20px;
+        width: 24px;
+        height: 24px;
         border-radius: 7px;
         border: 2px solid rgba(56, 189, 248, 0.7);
         background: transparent;
         position: relative;
         flex-shrink: 0;
-        margin-top: 2px;
+        margin-top: 1px;
       }
 
       .task.completed .checkbox {
@@ -600,10 +602,10 @@
       .task.completed .checkbox::after {
         content: "";
         position: absolute;
-        left: 5px;
-        top: 2px;
+        left: 7px;
+        top: 3px;
         width: 5px;
-        height: 9px;
+        height: 10px;
         border: solid white;
         border-width: 0 2px 2px 0;
         transform: rotate(45deg);
@@ -628,7 +630,7 @@
         display: inline-flex;
         align-items: center;
         gap: 6px;
-        margin-top: 2px;
+        margin-top: 4px;
         flex-wrap: wrap;
       }
 
@@ -638,10 +640,11 @@
         gap: 5px;
         background: rgba(2, 132, 199, 0.22);
         border: 1px solid rgba(56, 189, 248, 0.35);
-        border-radius: 6px;
-        padding: 3px 8px;
+        border-radius: 8px;
+        padding: 5px 10px;
+        min-height: 30px;
         color: #bae6fd;
-        font-size: 0.78rem;
+        font-size: 0.8rem;
         font-weight: 600;
         text-decoration: none;
         max-width: 100%;
@@ -667,15 +670,16 @@
         background: rgba(56, 189, 248, 0.1);
         border: 1px solid rgba(56, 189, 248, 0.2);
         color: #bae6fd;
-        border-radius: 6px;
-        padding: 2px 6px;
+        border-radius: 8px;
+        padding: 4px 8px;
         font-size: 0.72rem;
         cursor: pointer;
         line-height: 1;
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        height: 22px;
+        height: 30px;
+        min-width: 30px;
         transition: all 0.2s ease;
       }
 
@@ -687,10 +691,11 @@
       .delete-btn {
         background: rgba(248, 113, 113, 0.15);
         color: #fecaca;
-        padding: 6px 10px;
-        font-size: 0.8rem;
+        padding: 6px 12px;
+        min-height: 34px;
+        font-size: 0.82rem;
         flex-shrink: 0;
-        margin-top: 2px;
+        margin-top: 1px;
       }
 
       .card-header {
@@ -830,9 +835,10 @@
         background: rgba(56, 189, 248, 0.12);
         color: #bae6fd;
         border: 1px solid rgba(56, 189, 248, 0.3);
-        padding: 6px 14px;
-        border-radius: 10px;
-        font-size: 0.82rem;
+        padding: 8px 16px;
+        min-height: 40px;
+        border-radius: 11px;
+        font-size: 0.84rem;
         font-weight: 600;
         cursor: pointer;
         transition: all 0.2s ease;
@@ -941,15 +947,15 @@
         position: absolute;
         top: -6px;
         right: -6px;
-        width: 18px;
-        height: 18px;
+        width: 22px;
+        height: 22px;
         border-radius: 50%;
         background: #ef4444;
         color: white;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 11px;
+        font-size: 13px;
         cursor: pointer;
         border: 1px solid rgba(255, 255, 255, 0.4);
         padding: 0;
@@ -1041,15 +1047,6 @@
         border-radius: 8px;
       }
 
-      .feed-container::-webkit-scrollbar-thumb:hover,
-      .list::-webkit-scrollbar-thumb:hover,
-      .notepad-area::-webkit-scrollbar-thumb:hover,
-      .attachments-rail::-webkit-scrollbar-thumb:hover,
-      .comments-feed::-webkit-scrollbar-thumb:hover,
-      .dm-messages-box::-webkit-scrollbar-thumb:hover {
-        background: rgba(56, 189, 248, 0.5);
-      }
-
       .email-item {
         background: rgba(15, 35, 61, 0.7);
         border: 1px solid rgba(56, 189, 248, 0.15);
@@ -1110,545 +1107,16 @@
         padding: 20px;
       }
 
-      /* ==========================================
-          ORGANIZER DIRECTORY PANEL
-          ========================================== */
-      .organizer-wrapper {
-        padding: 24px 28px 28px;
-        display: flex;
-        flex-direction: column;
-        gap: 20px;
-      }
-
-      .organizer-toolbar {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        background: rgba(12, 25, 44, 0.65);
-        border: 1px solid rgba(56, 189, 248, 0.2);
-        border-radius: 14px;
-        padding: 12px 18px;
-        gap: 12px;
-        flex-wrap: wrap;
-      }
-
-      .organizer-actions {
-        display: flex;
-        gap: 10px;
-        align-items: center;
-      }
-
-      .organizer-actions input[type="text"] {
-        background: rgba(8, 18, 33, 0.85);
-        border: 1px solid rgba(56, 189, 248, 0.25);
-        border-radius: 10px;
-        padding: 8px 12px;
-        color: var(--text);
-        font-size: 0.88rem;
-        outline: none;
-      }
-
-      .directory-tree {
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-      }
-
-      .folder-card {
-        background: rgba(12, 25, 44, 0.7);
-        border: 1px solid rgba(56, 189, 248, 0.18);
-        border-radius: 14px;
-        padding: 14px 18px;
-      }
-
-      .folder-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        font-weight: 700;
-        color: #bae6fd;
-        font-size: 1rem;
-        margin-bottom: 10px;
-        padding-bottom: 6px;
-        border-bottom: 1px solid rgba(56, 189, 248, 0.12);
-      }
-
-      .folder-title-box {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-      }
-
-      .folder-contents {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-        gap: 12px;
-      }
-
-      .folder-file-item {
-        background: rgba(15, 35, 61, 0.9);
-        border: 1px solid rgba(56, 189, 248, 0.2);
-        border-radius: 10px;
-        padding: 8px 12px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 10px;
-      }
-
-      .folder-file-item select {
-        background: rgba(8, 18, 33, 0.8);
-        border: 1px solid rgba(56, 189, 248, 0.25);
-        border-radius: 6px;
-        color: #93c5fd;
-        font-size: 0.75rem;
-        padding: 4px 6px;
-        outline: none;
-      }
-
-      /* ==========================================
-          WIDGETS DASHBOARD TAB
-          ========================================== */
-      .widgets-wrapper {
-        padding: 24px 28px 28px;
-        display: flex;
-        flex-direction: column;
-        gap: 20px;
-      }
-
-      .widgets-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
-        gap: 20px;
-      }
-
-      .widget-box {
-        background: rgba(12, 25, 44, 0.7);
-        border: 1px solid rgba(56, 189, 248, 0.2);
-        border-radius: 18px;
-        padding: 18px 20px;
-        display: flex;
-        flex-direction: column;
-        gap: 14px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
-      }
-
-      .widget-box.hidden {
-        display: none !important;
-      }
-
-      .widget-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        border-bottom: 1px solid rgba(56, 189, 248, 0.15);
-        padding-bottom: 8px;
-      }
-
-      .widget-title {
-        font-weight: 700;
-        font-size: 1.05rem;
-        color: #e0f2fe;
-        display: flex;
-        align-items: center;
-        gap: 6px;
-      }
-
-      /* Mini Calc Widget */
-      .calc-display {
-        background: rgba(8, 18, 33, 0.9);
-        border: 1px solid rgba(56, 189, 248, 0.25);
-        border-radius: 10px;
-        padding: 12px;
-        text-align: right;
-        font-size: 1.5rem;
-        font-weight: 700;
-        color: #ffffff;
-        min-height: 48px;
-        overflow-x: auto;
-      }
-
-      .calc-keypad {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 8px;
-      }
-
-      .calc-btn {
-        background: rgba(15, 35, 61, 0.85);
-        border: 1px solid rgba(56, 189, 248, 0.2);
-        color: #bae6fd;
-        font-size: 1.1rem;
-        font-weight: 600;
-        padding: 10px 0;
-        border-radius: 10px;
-        cursor: pointer;
-        transition: all 0.15s ease;
-      }
-
-      .calc-btn:hover {
-        background: rgba(56, 189, 248, 0.25);
-        color: #ffffff;
-      }
-
-      .calc-btn.op {
-        background: rgba(2, 132, 199, 0.35);
-        color: #ffffff;
-      }
-
-      /* Currency converter card */
-      .currency-panel-wrapper {
-        padding: 28px;
-        display: flex;
-        justify-content: center;
-      }
-
-      .currency-card {
-        background: rgba(12, 25, 44, 0.75);
-        border: 1px solid rgba(56, 189, 248, 0.25);
-        border-radius: 20px;
-        padding: 28px;
-        width: 100%;
-        max-width: 640px;
-        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
-        display: flex;
-        flex-direction: column;
-        gap: 20px;
-      }
-
-      .currency-card-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        border-bottom: 1px solid rgba(56, 189, 248, 0.15);
-        padding-bottom: 12px;
-      }
-
-      .currency-card-title {
-        font-size: 1.25rem;
-        font-weight: 700;
-        color: #e0f2fe;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-      }
-
-      .currency-form {
-        display: flex;
-        flex-direction: column;
-        gap: 18px;
-      }
-
-      .currency-row {
-        display: flex;
-        gap: 12px;
-        align-items: flex-end;
-      }
-
-      .currency-input-group {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-      }
-
-      .currency-input-group label {
-        font-size: 0.85rem;
-        font-weight: 600;
-        color: #93c5fd;
-      }
-
-      .currency-input-group input,
-      .currency-input-group select {
-        background: rgba(8, 18, 33, 0.85);
-        border: 1px solid rgba(56, 189, 248, 0.25);
-        border-radius: 12px;
-        color: var(--text);
-        padding: 12px 14px;
-        font-size: 1rem;
-        outline: none;
-        transition: all 0.2s ease;
-      }
-
-      .currency-swap-btn {
-        background: rgba(2, 132, 199, 0.25);
-        border: 1px solid rgba(56, 189, 248, 0.35);
-        color: #bae6fd;
-        border-radius: 12px;
-        width: 48px;
-        height: 48px;
-        font-size: 1.25rem;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        flex-shrink: 0;
-        transition: all 0.2s ease;
-      }
-
-      .currency-swap-btn:hover {
-        background: rgba(2, 132, 199, 0.45);
-        color: #ffffff;
-        border-color: var(--primary-2);
-        transform: rotate(180deg);
-      }
-
-      .currency-rate-info {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        background: rgba(8, 18, 33, 0.6);
-        border: 1px dashed rgba(56, 189, 248, 0.2);
-        border-radius: 12px;
-        padding: 10px 14px;
-        font-size: 0.85rem;
-        color: #94a3b8;
-        flex-wrap: wrap;
-        gap: 8px;
-      }
-
-      .rate-edit-row {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-      }
-
-      .rate-edit-input {
-        background: rgba(15, 35, 61, 0.9);
-        border: 1px solid rgba(56, 189, 248, 0.3);
-        border-radius: 6px;
-        color: #bae6fd;
-        width: 70px;
-        padding: 4px 6px;
-        font-size: 0.85rem;
-        outline: none;
-        text-align: right;
-      }
-
-      .currency-result-box {
-        background: linear-gradient(135deg, rgba(2, 132, 199, 0.2), rgba(56, 189, 248, 0.08));
-        border: 1px solid rgba(56, 189, 248, 0.3);
-        border-radius: 16px;
-        padding: 16px 20px;
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-      }
-
-      .currency-result-label {
-        font-size: 0.82rem;
-        color: #93c5fd;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.04em;
-      }
-
-      .currency-result-value {
-        font-size: 1.85rem;
-        font-weight: 800;
-        color: #ffffff;
-        letter-spacing: -0.02em;
-        word-break: break-all;
-      }
-
-      /* Online Status Bar & Direct Messaging */
-      .online-status-bar {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        background: rgba(8, 18, 33, 0.7);
-        border: 1px solid rgba(56, 189, 248, 0.15);
-        border-radius: 12px;
-        padding: 10px 14px;
-        margin-bottom: 14px;
-        overflow-x: auto;
-        font-size: 0.82rem;
-      }
-
-      .online-status-label {
-        color: #94a3b8;
-        font-weight: 600;
-        flex-shrink: 0;
-      }
-
-      .online-users-rail {
-        display: flex;
-        gap: 8px;
-        align-items: center;
-        flex-wrap: wrap;
-      }
-
-      .online-user-pill {
-        position: relative;
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        background: rgba(15, 35, 61, 0.8);
-        border: 1px solid rgba(56, 189, 248, 0.25);
-        border-radius: 10px;
-        padding: 4px 10px;
-        color: #bae6fd;
-        cursor: pointer;
-        transition: all 0.2s ease;
-      }
-
-      .online-user-pill:hover {
-        background: rgba(2, 132, 199, 0.3);
-        border-color: var(--primary-2);
-        color: #ffffff;
-      }
-
-      .online-dot {
-        width: 7px;
-        height: 7px;
-        border-radius: 50%;
-        background: var(--success);
-        box-shadow: 0 0 6px var(--success);
-      }
-
-      .unread-badge {
-        position: absolute;
-        top: -5px;
-        right: -5px;
-        background: #ef4444;
-        color: white;
-        border-radius: 50%;
-        width: 18px;
-        height: 18px;
-        font-size: 10px;
-        font-weight: 700;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        box-shadow: 0 2px 6px rgba(239, 68, 68, 0.5);
-      }
-
-      /* Toast Banner */
-      .toast-banner {
-        position: fixed;
-        bottom: 24px;
-        right: 24px;
-        background: linear-gradient(135deg, #0284c7, #38bdf8);
-        color: #031e38;
-        padding: 14px 20px;
-        border-radius: 14px;
-        font-weight: 700;
-        font-size: 0.9rem;
-        box-shadow: 0 10px 30px rgba(56, 189, 248, 0.4);
-        z-index: 99999;
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        transform: translateY(120%);
-        transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-      }
-
-      .toast-banner.active {
-        transform: translateY(0);
-      }
-
-      .toast-close {
-        background: rgba(3, 30, 56, 0.15);
-        border: none;
-        color: #031e38;
-        font-size: 1rem;
-        cursor: pointer;
-        border-radius: 50%;
-        width: 22px;
-        height: 22px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-
-      /* DM Modal UI */
-      .dm-modal {
-        background: #0f233d;
-        border: 1px solid rgba(56, 189, 248, 0.3);
-        border-radius: 20px;
-        width: 100%;
-        max-width: 600px;
-        height: 520px;
-        display: flex;
-        flex-direction: column;
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7);
-        overflow: hidden;
-      }
-
-      .dm-messages-box {
-        flex: 1;
-        padding: 16px;
-        overflow-y: auto;
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-        background: rgba(8, 18, 33, 0.6);
-      }
-
-      .dm-bubble {
-        max-width: 80%;
-        padding: 10px 14px;
-        border-radius: 12px;
-        font-size: 0.9rem;
-        line-height: 1.4;
-        overflow-wrap: anywhere;
-        word-break: break-word;
-        display: flex;
-        flex-direction: column;
-        gap: 2px;
-      }
-
-      .dm-bubble.sent {
-        align-self: flex-end;
-        background: linear-gradient(135deg, rgba(2, 132, 199, 0.45), rgba(56, 189, 248, 0.25));
-        border: 1px solid rgba(56, 189, 248, 0.4);
-        border-radius: 14px 14px 2px 14px;
-        color: #f0f9ff;
-      }
-
-      .dm-bubble.received {
-        align-self: flex-start;
-        background: rgba(22, 50, 82, 0.85);
-        border: 1px solid rgba(56, 189, 248, 0.2);
-        border-radius: 14px 14px 14px 2px;
-        color: #f0f9ff;
-      }
-
-      .dm-bubble-time {
-        font-size: 0.7rem;
-        color: #94a3b8;
-        align-self: flex-end;
-        margin-top: 2px;
-      }
-
-      .dm-composer-bar {
-        padding: 12px 16px;
-        background: rgba(8, 18, 33, 0.95);
-        border-top: 1px solid rgba(56, 189, 248, 0.18);
-        display: flex;
-        gap: 8px;
-      }
-
-      .dm-composer-bar input[type="text"] {
-        flex: 1;
-        background: rgba(15, 35, 61, 0.8);
-        border: 1px solid rgba(56, 189, 248, 0.25);
-        border-radius: 10px;
-        padding: 10px 12px;
-        color: var(--text);
-        font-size: 0.9rem;
-        outline: none;
-      }
-
-      /* Comments section */
+      /* Clean Aligned Comments Section */
       .comments-card {
         background: rgba(12, 25, 44, 0.65);
         border: 1px solid rgba(56, 189, 248, 0.2);
         border-radius: 18px;
-        padding: 16px 20px 20px;
-        margin-top: 22px;
+        padding: 20px 24px 24px;
+        margin: 0 24px 24px;
         display: flex;
         flex-direction: column;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
       }
 
       .comments-feed {
@@ -1665,7 +1133,7 @@
         background: rgba(22, 50, 82, 0.7);
         border: 1px solid rgba(56, 189, 248, 0.15);
         border-radius: 12px;
-        padding: 10px 14px;
+        padding: 12px 16px;
         display: flex;
         justify-content: space-between;
         align-items: flex-start;
@@ -1714,15 +1182,16 @@
         color: #fecaca;
         border: 1px solid rgba(248, 113, 113, 0.3);
         border-radius: 8px;
-        padding: 4px 8px;
-        font-size: 0.75rem;
+        padding: 6px 10px;
+        min-height: 32px;
+        font-size: 0.78rem;
         cursor: pointer;
         flex-shrink: 0;
         transition: all 0.2s ease;
       }
 
       .comment-delete-btn:hover {
-        background: rgba(248, 113, 113, 0.3);
+        background: rgba(239, 68, 68, 0.3);
         color: #ffffff;
       }
 
@@ -1733,7 +1202,7 @@
         background: rgba(8, 18, 33, 0.85);
         border: 1px solid rgba(56, 189, 248, 0.18);
         border-radius: 14px;
-        padding: 12px;
+        padding: 12px 14px;
       }
 
       .comment-user-indicator {
@@ -1750,10 +1219,11 @@
       .comment-input-row input[type="text"] {
         flex: 1;
         min-width: 0;
-        background: rgba(12, 25, 44, 0.85);
+        background: rgba(8, 18, 33, 0.85);
         border: 1px solid rgba(56, 189, 248, 0.25);
         border-radius: 10px;
         padding: 10px 12px;
+        min-height: 42px;
         color: var(--text);
         font-size: 0.9rem;
         outline: none;
@@ -1763,183 +1233,612 @@
         color: #94a3b8;
         font-size: 0.88rem;
         text-align: center;
-        padding: 18px 12px;
+        padding: 24px 16px;
         background: rgba(8, 18, 33, 0.5);
         border: 1px dashed rgba(56, 189, 248, 0.25);
-        border-radius: 12px;
+        border-radius: 14px;
         display: flex;
         flex-direction: column;
         align-items: center;
         gap: 12px;
       }
 
-      /* Modals */
-      .admin-modal-backdrop, .general-modal-backdrop, .dm-modal-backdrop {
-        position: fixed;
-        inset: 0;
-        background: rgba(3, 13, 26, 0.85);
-        backdrop-filter: blur(6px);
-        z-index: 9999;
-        display: none;
-        align-items: center;
-        justify-content: center;
-        padding: 16px;
-      }
-
-      .admin-modal-backdrop.active, .general-modal-backdrop.active, .dm-modal-backdrop.active {
-        display: flex;
-      }
-
-      .admin-modal, .general-modal {
-        background: #0f233d;
-        border: 1px solid rgba(56, 189, 248, 0.3);
-        border-radius: 20px;
-        width: 100%;
-        max-width: 560px;
-        max-height: 90vh;
+      /* Organizer */
+      .organizer-wrapper {
+        padding: 22px 24px 24px;
         display: flex;
         flex-direction: column;
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7);
-        overflow: hidden;
+        gap: 20px;
       }
 
-      .admin-modal-header, .general-modal-header, .dm-modal-header {
-        padding: 18px 24px;
-        background: linear-gradient(135deg, rgba(2, 132, 199, 0.3), rgba(56, 189, 248, 0.1));
-        border-bottom: 1px solid rgba(56, 189, 248, 0.2);
+      .organizer-toolbar {
         display: flex;
         justify-content: space-between;
         align-items: center;
+        background: rgba(12, 25, 44, 0.65);
+        border: 1px solid rgba(56, 189, 248, 0.2);
+        border-radius: 14px;
+        padding: 12px 18px;
+        gap: 12px;
+        flex-wrap: wrap;
       }
 
-      .admin-modal-title, .general-modal-title, .dm-modal-title {
-        font-weight: 700;
-        font-size: 1.15rem;
-        color: #e0f2fe;
-      }
-
-      .admin-modal-close, .general-modal-close, .dm-modal-close {
-        background: rgba(56, 189, 248, 0.1);
-        border: 1px solid rgba(56, 189, 248, 0.25);
-        color: #bae6fd;
-        width: 32px;
-        height: 32px;
-        border-radius: 8px;
+      .organizer-actions {
         display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        font-size: 1.1rem;
-      }
-
-      .admin-modal-body, .general-modal-body {
-        padding: 20px 24px;
-        overflow-y: auto;
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
-        font-size: 0.92rem;
-        line-height: 1.5;
-        color: #cbd5e1;
-      }
-
-      .admin-section {
-        display: flex;
-        flex-direction: column;
         gap: 10px;
+        align-items: center;
+        flex: 1 1 auto;
       }
 
-      .admin-section-title {
-        font-weight: 600;
-        font-size: 0.95rem;
-        color: #93c5fd;
-        border-bottom: 1px solid rgba(56, 189, 248, 0.15);
-        padding-bottom: 6px;
-      }
-
-      .admin-row {
-        display: flex;
-        gap: 8px;
-      }
-
-      .admin-row input {
-        flex: 1;
+      .organizer-actions input[type="text"] {
         background: rgba(8, 18, 33, 0.85);
         border: 1px solid rgba(56, 189, 248, 0.25);
         border-radius: 10px;
         padding: 9px 12px;
+        min-height: 42px;
         color: var(--text);
-        font-size: 0.9rem;
+        font-size: 0.88rem;
         outline: none;
+        flex: 1 1 200px;
       }
 
-      .admin-list, .user-list {
-        list-style: none;
-        padding: 0;
-        margin: 0;
+      .directory-tree {
         display: flex;
         flex-direction: column;
-        gap: 6px;
-        max-height: 160px;
-        overflow-y: auto;
+        gap: 12px;
       }
 
-      .admin-list-item, .user-list-item {
-        background: rgba(8, 18, 33, 0.6);
-        border: 1px solid rgba(56, 189, 248, 0.15);
-        border-radius: 8px;
+      .folder-card {
+        background: rgba(12, 25, 44, 0.7);
+        border: 1px solid rgba(56, 189, 248, 0.18);
+        border-radius: 14px;
+        padding: 14px 18px;
+      }
+
+      .folder-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-weight: 700;
+        color: #bae6fd;
+        font-size: 1rem;
+        margin-bottom: 10px;
+        padding-bottom: 6px;
+        border-bottom: 1px solid rgba(56, 189, 248, 0.12);
+      }
+
+      .folder-title-box {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .folder-contents {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 12px;
+      }
+
+      .folder-file-item {
+        background: rgba(15, 35, 61, 0.9);
+        border: 1px solid rgba(56, 189, 248, 0.2);
+        border-radius: 10px;
         padding: 8px 12px;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        font-size: 0.88rem;
         gap: 10px;
       }
 
-      .user-nickname-input {
-        background: rgba(15, 35, 61, 0.8);
+      .folder-file-item select {
+        background: rgba(8, 18, 33, 0.8);
         border: 1px solid rgba(56, 189, 248, 0.25);
         border-radius: 6px;
-        padding: 5px 8px;
-        color: var(--text);
-        font-size: 0.84rem;
-        width: 140px;
+        color: #93c5fd;
+        font-size: 0.78rem;
+        padding: 6px 8px;
+        min-height: 32px;
         outline: none;
       }
 
-      @media (max-width: 1200px) {
-        .workspace-grid { grid-template-columns: 1fr 1fr; }
-        .workspace-grid > .column-card:nth-child(3) { grid-column: span 2; }
+      /* Calculator Card */
+      .prominent-calc-card {
+        background: rgba(12, 25, 44, 0.75);
+        border: 1px solid rgba(56, 189, 248, 0.25);
+        border-radius: 24px;
+        padding: 28px;
+        width: 100%;
+        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
       }
 
+      /* Prominent Currency Converter */
+      .utility-tools-wrapper {
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+        align-items: center;
+      }
+
+      .utility-tools-grid {
+        display: grid;
+        grid-template-columns: 1fr 1.25fr;
+        gap: 24px;
+        width: 100%;
+        max-width: 1200px;
+        align-items: start;
+      }
+
+      .prominent-currency-card {
+        background: linear-gradient(145deg, rgba(15, 35, 61, 0.95), rgba(8, 20, 38, 0.98));
+        border: 2px solid rgba(56, 189, 248, 0.4);
+        border-radius: 24px;
+        padding: 32px 28px;
+        width: 100%;
+        box-shadow: 0 20px 60px rgba(2, 132, 199, 0.2);
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+      }
+
+      .prominent-currency-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 2px solid rgba(56, 189, 248, 0.2);
+        padding-bottom: 16px;
+      }
+
+      .prominent-currency-title {
+        font-size: 1.4rem;
+        font-weight: 800;
+        color: #e0f2fe;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .prominent-form {
+        display: flex;
+        flex-direction: column;
+        gap: 22px;
+      }
+
+      .prominent-row {
+        display: flex;
+        gap: 14px;
+        align-items: flex-end;
+      }
+
+      .prominent-input-group {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .prominent-input-group label {
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: #93c5fd;
+      }
+
+      .currency-input-prefix-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+      }
+
+      .amount-symbol-prefix {
+        position: absolute;
+        left: 18px;
+        font-size: 1.3rem;
+        font-weight: 800;
+        color: var(--primary-2);
+        user-select: none;
+        pointer-events: none;
+      }
+
+      .prominent-input-group input#currencyAmount {
+        padding-left: 48px !important;
+      }
+
+      .prominent-input-group input,
+      .prominent-input-group select {
+        background: rgba(12, 25, 44, 0.95);
+        border: 2px solid rgba(56, 189, 248, 0.35);
+        border-radius: 16px;
+        color: var(--text);
+        padding: 16px 18px;
+        min-height: 58px;
+        font-size: 1.2rem;
+        font-weight: 600;
+        outline: none;
+        transition: all 0.2s ease;
+        width: 100%;
+      }
+
+      .prominent-input-group input:focus,
+      .prominent-input-group select:focus {
+        border-color: var(--primary-2);
+        box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.25);
+      }
+
+      .prominent-swap-btn {
+        background: linear-gradient(135deg, var(--primary), var(--primary-2));
+        border: none;
+        color: #031e38;
+        border-radius: 16px;
+        width: 58px;
+        height: 58px;
+        font-size: 1.6rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        flex-shrink: 0;
+        transition: all 0.2s ease;
+        box-shadow: 0 4px 16px rgba(56, 189, 248, 0.4);
+      }
+
+      .prominent-swap-btn:hover {
+        filter: brightness(1.1);
+        transform: rotate(180deg) scale(1.05);
+      }
+
+      .prominent-rate-info {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: rgba(12, 25, 44, 0.7);
+        border: 1px dashed rgba(56, 189, 248, 0.3);
+        border-radius: 14px;
+        padding: 14px 18px;
+        font-size: 0.92rem;
+        color: #cbd5e1;
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+
+      .prominent-rate-input {
+        background: rgba(8, 18, 33, 0.95);
+        border: 1px solid rgba(56, 189, 248, 0.4);
+        border-radius: 8px;
+        color: #bae6fd;
+        width: 95px;
+        padding: 8px 10px;
+        min-height: 38px;
+        font-size: 1rem;
+        font-weight: 700;
+        outline: none;
+        text-align: right;
+      }
+
+      .prominent-result-box {
+        background: linear-gradient(135deg, rgba(2, 132, 199, 0.3), rgba(56, 189, 248, 0.12));
+        border: 2px solid rgba(56, 189, 248, 0.5);
+        border-radius: 20px;
+        padding: 22px 26px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.3);
+      }
+
+      .prominent-result-label {
+        font-size: 0.88rem;
+        color: #93c5fd;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+
+      .prominent-result-value {
+        font-size: 2.3rem;
+        font-weight: 900;
+        color: #ffffff;
+        letter-spacing: -0.02em;
+        word-break: break-all;
+        display: inline-flex;
+        align-items: baseline;
+        gap: 8px;
+      }
+
+      /* Toast Banner */
+      .toast-banner {
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        background: linear-gradient(135deg, #0284c7, #38bdf8);
+        color: #031e38;
+        padding: 14px 20px;
+        border-radius: 14px;
+        font-weight: 700;
+        font-size: 0.9rem;
+        box-shadow: 0 10px 30px rgba(56, 189, 248, 0.4);
+        z-index: 99999;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        transform: translateY(120%);
+        transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      }
+
+      .toast-banner.active {
+        transform: translateY(0);
+      }
+
+      .toast-close {
+        background: rgba(3, 30, 56, 0.15);
+        border: none;
+        color: #031e38;
+        font-size: 1rem;
+        cursor: pointer;
+        border-radius: 50%;
+        width: 28px;
+        height: 28px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      /* Tablet Breakpoint */
+      @media (max-width: 1200px) {
+        .workspace-grid {
+          grid-template-columns: 1fr 1fr;
+        }
+        .workspace-grid > .column-card:nth-child(3) {
+          grid-column: span 2;
+        }
+        .utility-tools-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      /* Mobile Smartphone Responsive Rules (768px and down) */
       @media (max-width: 768px) {
-        body { padding-bottom: 32px; }
-        .app-container-wrapper { padding: 8px 6px 0; }
-        .app { border-radius: 16px; }
-        .header { padding: 16px 14px; gap: 12px; }
-        .header-title-block { flex: 1 1 100%; }
-        h1 { font-size: 1.4rem; }
-        .subtitle { font-size: 0.84rem; }
-        .view-nav-bar { padding: 8px 14px 0; }
-        .view-tab-btn { padding: 8px 12px; font-size: 0.82rem; }
-        .organizer-wrapper, .widgets-wrapper { padding: 16px 14px; }
-        .currency-row { flex-direction: column; align-items: stretch; }
-        .currency-swap-btn { align-self: center; width: 44px; height: 44px; }
-        .quick-links { width: 100%; gap: 8px; }
-        .quick-btn, .lock-toggle-btn, .guide-btn { flex: 1 1 auto; justify-content: center; padding: 8px 10px; font-size: 0.82rem; }
-        .workspace-grid { grid-template-columns: 1fr; padding: 14px 12px 18px; gap: 16px; }
-        .workspace-grid > .column-card:nth-child(3) { grid-column: span 1; }
-        .column-card { padding: 14px; border-radius: 14px; }
-        .card-drag-handle { display: none !important; }
-        .card-header { flex-direction: column; align-items: flex-start; gap: 8px; }
-        .feed-header-actions { width: 100%; justify-content: flex-start; gap: 6px; }
-        .list, .feed-container { height: 380px; min-height: 380px; max-height: 380px; }
-        .notepad-area { height: 280px; min-height: 280px; }
-        .task-search-composer { padding: 8px; border-radius: 14px; }
-        .search-field-row { min-height: 44px; padding: 0 10px; }
-        .search-field-row input[type="text"] { font-size: 0.92rem !important; min-height: 42px; }
-        .task-submit-btn { min-height: 42px; font-size: 0.88rem; }
-        .primary-btn, .secondary-btn, .danger-btn { font-size: 0.8rem; padding: 6px 10px; height: 36px; min-height: 36px; }
+        body {
+          padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+        }
+
+        .app-container-wrapper {
+          padding: 10px 8px 0;
+        }
+
+        .app {
+          border-radius: 18px;
+          margin-bottom: 12px;
+        }
+
+        .header {
+          padding: 14px 14px 16px;
+          flex-direction: column;
+          align-items: stretch;
+          gap: 12px;
+          border-radius: 18px 18px 0 0;
+        }
+
+        .header-title-block {
+          flex: 1 1 100%;
+          text-align: center;
+        }
+
+        h1 {
+          font-size: 1.35rem;
+        }
+
+        .subtitle {
+          font-size: 0.8rem;
+        }
+
+        .nav-bar-cluster {
+          width: 100%;
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 8px;
+        }
+
+        .nav-group-divider {
+          display: none;
+        }
+
+        .nav-link-btn,
+        .lock-toggle-btn {
+          width: 100%;
+          justify-content: center;
+          padding: 10px 8px;
+          min-height: 44px;
+          font-size: 0.82rem;
+        }
+
+        .workspace-grid {
+          grid-template-columns: 1fr;
+          padding: 16px 12px;
+          gap: 16px;
+        }
+
+        .workspace-grid > .column-card:nth-child(3) {
+          grid-column: span 1;
+        }
+
+        .column-card {
+          padding: 14px 14px 16px;
+          border-radius: 16px;
+        }
+
+        .card-drag-handle {
+          display: none !important;
+        }
+
+        .card-header {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 8px;
+        }
+
+        .feed-header-actions {
+          width: 100%;
+          justify-content: flex-start;
+          gap: 6px;
+          flex-wrap: wrap;
+        }
+
+        .list,
+        .feed-container {
+          height: 360px;
+          min-height: 360px;
+          max-height: 360px;
+        }
+
+        .notepad-area {
+          height: 260px;
+          min-height: 260px;
+        }
+
+        .task-search-composer {
+          padding: 8px;
+          border-radius: 14px;
+        }
+
+        .search-field-row {
+          min-height: 44px;
+          padding: 0 10px;
+        }
+
+        .search-field-row input[type="text"] {
+          font-size: 0.92rem !important;
+          min-height: 42px;
+        }
+
+        .task-submit-btn {
+          min-height: 46px;
+          font-size: 0.9rem;
+        }
+
+        .primary-btn,
+        .secondary-btn,
+        .danger-btn {
+          font-size: 0.84rem;
+          padding: 8px 12px;
+          min-height: 42px;
+        }
+
+        .comments-card {
+          margin: 0 12px 18px;
+          padding: 16px 14px;
+          border-radius: 16px;
+        }
+
+        .comment-input-row {
+          flex-direction: column;
+          gap: 8px;
+        }
+
+        .comment-input-row input[type="text"] {
+          width: 100%;
+          min-height: 44px;
+        }
+
+        .comment-input-row button {
+          width: 100%;
+          min-height: 42px;
+        }
+
+        .organizer-wrapper,
+        .widgets-wrapper {
+          padding: 14px 12px;
+          gap: 14px;
+        }
+
+        .organizer-toolbar {
+          padding: 10px 12px;
+          flex-direction: column;
+          align-items: stretch;
+        }
+
+        .organizer-actions {
+          flex-direction: column;
+          width: 100%;
+        }
+
+        .organizer-actions input[type="text"] {
+          width: 100%;
+        }
+
+        .organizer-actions button {
+          width: 100%;
+        }
+
+        .folder-contents {
+          grid-template-columns: 1fr;
+        }
+
+        .utility-tools-wrapper {
+          padding: 12px;
+          gap: 16px;
+        }
+
+        .utility-tools-grid {
+          grid-template-columns: 1fr;
+          gap: 16px;
+        }
+
+        .prominent-currency-card {
+          padding: 20px 16px;
+          border-radius: 18px;
+        }
+
+        .prominent-currency-title {
+          font-size: 1.15rem;
+        }
+
+        .prominent-row {
+          flex-direction: column;
+          align-items: stretch;
+          gap: 12px;
+        }
+
+        .prominent-swap-btn {
+          align-self: center;
+          width: 52px;
+          height: 48px;
+          transform: rotate(90deg);
+        }
+        .prominent-swap-btn:hover {
+          transform: rotate(270deg) scale(1.05);
+        }
+
+        .prominent-input-group input,
+        .prominent-input-group select {
+          min-height: 50px;
+          font-size: 1.1rem;
+          padding: 12px 14px;
+        }
+
+        .prominent-result-value {
+          font-size: 1.9rem;
+        }
+
+        .prominent-calc-card {
+          padding: 18px 16px;
+          border-radius: 18px;
+        }
+
+        .calc-btn {
+          min-height: 48px;
+          font-size: 1.2rem;
+        }
+
+        .toast-banner {
+          left: 12px;
+          right: 12px;
+          bottom: 16px;
+          font-size: 0.84rem;
+          padding: 12px 14px;
+        }
       }
     </style>
   </head>
@@ -1957,40 +1856,42 @@
 
     <div class="app-container-wrapper">
       <main class="app">
+        <!-- Unified Streamlined Header Navigation -->
         <header class="header">
           <div class="header-title-block">
             <h1>MGT Workspace</h1>
             <div class="subtitle">Keep track of your priorities, quick notes, and live inbox feed.</div>
           </div>
 
-          <div class="quick-links">
-            <button id="guideBtn" class="secondary-btn" type="button" title="How to Use Guide">📖 Guide</button>
-            <button id="adminPanelBtn" class="secondary-btn" type="button" style="display: none;" title="Open Admin Panel">⚙️ Admin Panel</button>
+          <!-- Consolidated Responsive Navigation Cluster -->
+          <div class="nav-bar-cluster">
+            <!-- Workspace Core Views -->
+            <button class="nav-link-btn active" type="button" id="navBtnBoard"><span>📊</span> Board</button>
+            <button class="nav-link-btn" type="button" id="navBtnOrganizer"><span>🗂️</span> Organizer</button>
+            <button class="nav-link-btn" type="button" id="navBtnConverter"><span>💱</span> Converter & Tools</button>
+
+            <div class="nav-group-divider"></div>
+
+            <!-- Productivity Utilities -->
+            <button class="nav-link-btn" type="button" id="navBtnPomodoro"><span>⏱️</span> Pomodoro</button>
+            <button class="nav-link-btn" type="button" id="guideBtn"><span>📖</span> Guide</button>
+
+            <div class="nav-group-divider"></div>
+
+            <!-- AI Assistants & Cloud Integrations -->
+            <a href="https://gemini.google.com" target="_blank" rel="noopener noreferrer" class="nav-link-btn ai-glow"><span>✨</span> Gemini</a>
+            <a href="https://chatgpt.com" target="_blank" rel="noopener noreferrer" class="nav-link-btn ai-glow"><span>🤖</span> ChatGPT</a>
+            <a href="https://mail.google.com" target="_blank" rel="noopener noreferrer" class="nav-link-btn"><span>✉️</span> Gmail</a>
+            <a href="https://drive.google.com" target="_blank" rel="noopener noreferrer" class="nav-link-btn"><span>☁️</span> Drive</a>
+
+            <div class="nav-group-divider"></div>
+
+            <!-- Layout Lock Toggle -->
             <button id="lockToggleBtn" class="lock-toggle-btn" type="button" title="Lock/Unlock column reordering">
               <span id="lockIcon">🔒</span> <span id="lockLabel">Locked</span>
             </button>
-            <a href="https://gemini.google.com" target="_blank" rel="noopener noreferrer" class="quick-btn">Gemini</a>
-            <a href="https://chatgpt.com" target="_blank" rel="noopener noreferrer" class="quick-btn">ChatGPT</a>
-            <a href="https://mail.google.com" target="_blank" rel="noopener noreferrer" class="quick-btn">Gmail</a>
-            <a href="https://drive.google.com" target="_blank" rel="noopener noreferrer" class="quick-btn">Drive</a>
           </div>
         </header>
-
-        <!-- View Categorizer Tab Bar -->
-        <nav class="view-nav-bar" aria-label="Workspace Views">
-          <button id="tabWorkspaceBtn" class="view-tab-btn active" type="button">
-            <span>📊</span> <span>Workspace Board</span>
-          </button>
-          <button id="tabOrganizerBtn" class="view-tab-btn" type="button">
-            <span>📁</span> <span>Files & Folder Organizer</span>
-          </button>
-          <button id="tabWidgetsBtn" class="view-tab-btn" type="button">
-            <span>🧩</span> <span>Widgets Dashboard</span>
-          </button>
-          <button id="tabConverterBtn" class="view-tab-btn" type="button">
-            <span>💱</span> <span>Currency Converter (PHP / USD)</span>
-          </button>
-        </nav>
 
         <!-- 1. MAIN WORKSPACE VIEW TAB -->
         <div id="workspaceViewPanel" class="tab-panel">
@@ -2090,33 +1991,30 @@
             </section>
           </div>
 
-          <!-- Shared Activity & Comments Section -->
-          <section class="comments-card" style="margin: 0 28px 28px;">
-            <div id="onlineStatusBar" class="online-status-bar" style="display: none;">
-              <span class="online-status-label">🟢 Online:</span>
-              <div id="onlineUsersRail" class="online-users-rail"></div>
-            </div>
-
+          <!-- Shared Activity & Comments Section (Aligned precisely with upper cards) -->
+          <section class="comments-card">
             <div class="card-header" style="margin-bottom: 10px;">
               <span class="card-title">Shared Activity & Comments</span>
               <span id="commentCountBadge" class="stats"></span>
             </div>
 
+            <!-- Visible only when authenticated with Gmail -->
             <div id="commentsContainer" style="display: none;">
               <div id="commentsFeed" class="comments-feed"></div>
               <div id="commentComposerContainer"></div>
             </div>
 
+            <!-- Gate shown when logged out -->
             <div id="commentAuthGate">
               <div class="comment-auth-notice">
-                <span>🔐 Sign in with Google above to view and post comments.</span>
-                <button id="gateSignInBtn" class="primary-btn" type="button">Sign In / Register with Google</button>
+                <span>🔐 Connect your Gmail account above to view and post shared comments.</span>
+                <button id="gateSignInBtn" class="primary-btn" type="button">Sign In with Google</button>
               </div>
             </div>
           </section>
         </div>
 
-        <!-- 2. ATTACHMENTS & FOLDER ORGANIZER TAB -->
+        <!-- 2. ATTACHMENTS & FOLDER ORGANIZER TAB (With Per-Item File Deletion) -->
         <div id="organizerViewPanel" class="tab-panel hidden">
           <div class="organizer-wrapper">
             <div class="organizer-toolbar">
@@ -2131,24 +2029,69 @@
           </div>
         </div>
 
-        <!-- 3. WIDGETS DASHBOARD TAB -->
-        <div id="widgetsViewPanel" class="tab-panel hidden">
-          <div class="widgets-wrapper">
-            <div class="organizer-toolbar">
-              <span class="card-title">⚡ Interactive Modular Widgets</span>
-              <div class="filters">
-                <button id="toggleCalcWidgetBtn" class="filter-btn active" type="button">Calculator</button>
-                <button id="toggleTreeWidgetBtn" class="filter-btn active" type="button">Directory Tree</button>
-                <button id="toggleQuickStatsWidgetBtn" class="filter-btn active" type="button">Quick Summary</button>
-              </div>
-            </div>
+        <!-- 3. COMBINED UTILITIES VIEW (Prominent Currency Converter with Live API, Default USD->PHP, Prefix Symbol & Calculator) -->
+        <div id="currencyViewPanel" class="tab-panel hidden">
+          <div class="utility-tools-wrapper">
+            <div class="utility-tools-grid">
+              
+              <!-- Large Prominent Mobile-Friendly Currency Converter (Default: USD -> PHP) -->
+              <section class="prominent-currency-card">
+                <div class="prominent-currency-header">
+                  <span class="prominent-currency-title">💱 USD ⇄ PHP Live Converter</span>
+                  <span id="apiRateStatus" class="card-status syncing"><span class="sync-dot"></span><span>Fetching live rate...</span></span>
+                </div>
 
-            <div class="widgets-grid">
-              <!-- Mini Calculator Widget -->
-              <div id="widgetCalculator" class="widget-box">
+                <div class="prominent-form">
+                  <div class="prominent-row">
+                    <div class="prominent-input-group">
+                      <label for="currencyAmount">Amount</label>
+                      <div class="currency-input-prefix-wrapper">
+                        <span id="amountSymbolPrefix" class="amount-symbol-prefix">$</span>
+                        <input type="number" id="currencyAmount" value="100" min="0" step="any" placeholder="Enter amount..." />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="prominent-row">
+                    <div class="prominent-input-group">
+                      <label for="currencyFrom">From Currency</label>
+                      <select id="currencyFrom">
+                        <option value="PHP">PHP - Philippine Peso (₱)</option>
+                        <option value="USD" selected>USD - US Dollar ($)</option>
+                      </select>
+                    </div>
+
+                    <button type="button" id="currencySwapBtn" class="prominent-swap-btn" title="Swap Currencies">⇄</button>
+
+                    <div class="prominent-input-group">
+                      <label for="currencyTo">To Currency</label>
+                      <select id="currencyTo">
+                        <option value="PHP" selected>PHP - Philippine Peso (₱)</option>
+                        <option value="USD">USD - US Dollar ($)</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div class="prominent-rate-info">
+                    <span>Live API Rate: <strong>1 USD = <span id="currentRateDisplay">62.51</span> PHP</strong></span>
+                    <div class="rate-edit-row">
+                      <label for="customRateInput">Override (₱):</label>
+                      <input type="number" id="customRateInput" class="prominent-rate-input" value="62.51" step="0.01" min="1" />
+                    </div>
+                  </div>
+
+                  <div class="prominent-result-box">
+                    <span class="prominent-result-label" id="conversionDirectionLabel">USD to PHP Conversion</span>
+                    <span class="prominent-result-value"><span id="convertedAmountText">6,251.00</span> <span id="targetCurrencyLabel" style="font-size: 1.2rem; color: #38bdf8;">PHP (₱)</span></span>
+                  </div>
+                </div>
+              </section>
+
+              <!-- Companion Calculator Card -->
+              <section class="prominent-calc-card">
                 <div class="widget-header">
                   <span class="widget-title">🧮 Workspace Calculator</span>
-                  <span class="stats">Live Utility</span>
+                  <span class="stats">Utility</span>
                 </div>
                 <div id="calcDisplay" class="calc-display">0</div>
                 <div class="calc-keypad">
@@ -2175,92 +2118,9 @@
                   <button class="calc-btn" data-calc="0" type="button" style="grid-column: span 2;">0</button>
                   <button class="calc-btn" data-calc="." type="button">.</button>
                 </div>
-              </div>
+              </section>
 
-              <!-- Directory Overview Widget -->
-              <div id="widgetFileTree" class="widget-box">
-                <div class="widget-header">
-                  <span class="widget-title">🌲 Fast File Tree</span>
-                  <span class="stats" id="widgetTreeCount">0 Files</span>
-                </div>
-                <div id="widgetDirectoryList" style="display: flex; flex-direction: column; gap: 8px; max-height: 280px; overflow-y: auto;"></div>
-              </div>
-
-              <!-- Workspace Analytics Widget -->
-              <div id="widgetQuickStats" class="widget-box">
-                <div class="widget-header">
-                  <span class="widget-title">📈 Workspace Performance</span>
-                  <span class="stats">Live Metric</span>
-                </div>
-                <div style="display: flex; flex-direction: column; gap: 10px; font-size: 0.9rem;">
-                  <div style="display:flex; justify-content:space-between; background:rgba(8,18,33,0.6); padding:8px 12px; border-radius:8px;">
-                    <span>Active Priorities:</span>
-                    <strong id="statActiveTasks" style="color:#bae6fd;">0</strong>
-                  </div>
-                  <div style="display:flex; justify-content:space-between; background:rgba(8,18,33,0.6); padding:8px 12px; border-radius:8px;">
-                    <span>Completed Tasks:</span>
-                    <strong id="statCompletedTasks" style="color:#34d399;">0</strong>
-                  </div>
-                  <div style="display:flex; justify-content:space-between; background:rgba(8,18,33,0.6); padding:8px 12px; border-radius:8px;">
-                    <span>Total Uploaded Files:</span>
-                    <strong id="statTotalAttachments" style="color:#fcd34d;">0</strong>
-                  </div>
-                  <div style="display:flex; justify-content:space-between; background:rgba(8,18,33,0.6); padding:8px 12px; border-radius:8px;">
-                    <span>Organized Folders:</span>
-                    <strong id="statTotalFolders" style="color:#38bdf8;">0</strong>
-                  </div>
-                </div>
-              </div>
             </div>
-          </div>
-        </div>
-
-        <!-- 4. CURRENCY CONVERTER CATEGORY TAB -->
-        <div id="currencyViewPanel" class="tab-panel hidden">
-          <div class="currency-panel-wrapper">
-            <section class="currency-card">
-              <div class="currency-card-header">
-                <span class="currency-card-title">💱 PHP ⇄ USD Currency Converter</span>
-                <span class="card-status saved">Live Calculation</span>
-              </div>
-
-              <div class="currency-form">
-                <div class="currency-row">
-                  <div class="currency-input-group">
-                    <label for="currencyAmount">Amount</label>
-                    <input type="number" id="currencyAmount" value="1000" min="0" step="any" placeholder="Enter amount..." />
-                  </div>
-                  <div class="currency-input-group">
-                    <label for="currencyFrom">From</label>
-                    <select id="currencyFrom">
-                      <option value="PHP" selected>PHP - Philippine Peso (₱)</option>
-                      <option value="USD">USD - US Dollar ($)</option>
-                    </select>
-                  </div>
-                  <button type="button" id="currencySwapBtn" class="currency-swap-btn" title="Swap Currencies">⇄</button>
-                  <div class="currency-input-group">
-                    <label for="currencyTo">To</label>
-                    <select id="currencyTo">
-                      <option value="PHP">PHP - Philippine Peso (₱)</option>
-                      <option value="USD" selected>USD - US Dollar ($)</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div class="currency-rate-info">
-                  <span>Exchange Rate Base: <strong>1 USD = <span id="currentRateDisplay">58.00</span> PHP</strong></span>
-                  <div class="rate-edit-row">
-                    <label for="customRateInput">Custom Rate (₱):</label>
-                    <input type="number" id="customRateInput" class="rate-edit-input" value="58.00" step="0.01" min="1" />
-                  </div>
-                </div>
-
-                <div class="currency-result-box">
-                  <span class="currency-result-label" id="conversionDirectionLabel">PHP to USD Conversion</span>
-                  <span class="currency-result-value" id="conversionOutput">$17.24 USD</span>
-                </div>
-              </div>
-            </section>
           </div>
         </div>
       </main>
@@ -2274,9 +2134,8 @@
           <button id="welcomeModalClose" class="general-modal-close" type="button">&times;</button>
         </div>
         <div class="general-modal-body">
-          <p>Your all-in-one executive workspace for managing daily priorities, storing quick notes, reviewing live Gmail messages, and organizing attachments with modular productivity widgets.</p>
-          <div style="margin-top: 10px; display: flex; justify-content: space-between; align-items: center;">
-            <button id="welcomeSignInBtn" class="secondary-btn" type="button">Sign In / Register with Google</button>
+          <p>Your all-in-one executive workspace for managing daily priorities, storing quick notes, reviewing live Gmail messages, organizing attachments, and accessing live currency exchange tools.</p>
+          <div style="margin-top: 10px; display: flex; justify-content: flex-end; align-items: center;">
             <button id="welcomeBeginBtn" class="primary-btn" type="button">Okay / Let's Begin</button>
           </div>
         </div>
@@ -2294,36 +2153,11 @@
           <h3>1. Workspace & Gmail</h3>
           <p>Sign in with Google to review emails and auto-sync scratchpad and daily priorities.</p>
           <h3>2. Folders & File Organizer</h3>
-          <p>Create directories and allocate attachments across custom folders directly inside the Organizer tab.</p>
-          <h3>3. Interactive Widgets</h3>
-          <p>Use the modular calculator and file tree visualizer on the Widgets dashboard.</p>
+          <p>Create directories, allocate attachments across custom folders, and delete individual files directly from the Organizer tab.</p>
+          <h3>3. Live Currency API</h3>
+          <p>The converter defaults to USD to PHP, fetching live exchange rates automatically with manual override support.</p>
           <div style="margin-top: 10px; display: flex; justify-content: flex-end;">
             <button id="tutorialGotItBtn" class="primary-btn" type="button">Got It</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Admin Panel Modal -->
-    <div id="adminModalBackdrop" class="admin-modal-backdrop">
-      <div class="admin-modal">
-        <div class="admin-modal-header">
-          <span class="admin-modal-title">⚙️ Admin Control Panel</span>
-          <button id="adminModalClose" class="admin-modal-close" type="button">&times;</button>
-        </div>
-        <div class="admin-modal-body">
-          <div class="admin-section">
-            <span class="admin-section-title">Manage Administrators</span>
-            <div class="admin-row">
-              <input type="text" id="newAdminEmailInput" placeholder="Enter Gmail address (e.g. user@gmail.com)" autocomplete="off" />
-              <button id="addAdminBtn" class="primary-btn" type="button">Add Admin</button>
-            </div>
-            <ul id="adminListContainer" class="admin-list"></ul>
-          </div>
-
-          <div class="admin-section">
-            <span class="admin-section-title">Manage User Nicknames</span>
-            <ul id="userNicknamesListContainer" class="user-list"></ul>
           </div>
         </div>
       </div>
@@ -2360,7 +2194,6 @@
       const CLIENT_ID = '912308604808-p1nkq6drca0mvt60ipp9u1bpj9bh5iud.apps.googleusercontent.com';
       const OAUTH_SCOPES = 'https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/drive.appdata';
       const CLOUD_SYNC_FILENAME = 'mgt_workspace_data.json';
-      const INITIAL_OWNER_EMAIL = 'mgetgibbs@gmail.com';
       
       const SESSION_TOKEN_KEY = 'mgt_session_access_token';
       const SESSION_USER_KEY = 'mgt_session_user_email';
@@ -2373,9 +2206,7 @@
       const LOCAL_FOLDERS_KEY = 'mgt_local_folders';
       const LOCAL_COMMENTS_KEY = 'mgt_local_comments';
       const LOCAL_DMS_KEY = 'mgt_local_dms';
-      const LOCAL_ADMINS_KEY = 'mgt_admin_list';
       const LOCAL_NICKNAMES_KEY = 'mgt_user_nicknames';
-      const LOCAL_PRESENCE_KEY = 'mgt_user_presence';
       const LOCAL_USD_RATE_KEY = 'mgt_usd_php_rate';
 
       let tokenClient = null;
@@ -2388,7 +2219,6 @@
       let isSaveInFlight = false;
       let pendingSaveQueued = false;
       let silentRefreshTimer = null;
-      let presenceHeartbeatInterval = null;
 
       let isLayoutLocked = localStorage.getItem(LAYOUT_LOCK_KEY) !== 'false';
       let pendingRetryQueue = [];
@@ -2396,7 +2226,7 @@
       let activeDmRecipient = null; 
       let lastSeenDmCount = 0; 
 
-      // Calculator internal state
+      // Calculator state
       let calcExpression = '0';
 
       // DOM Elements
@@ -2409,18 +2239,16 @@
       const lockToggleBtn = document.getElementById('lockToggleBtn');
       const lockIcon = document.getElementById('lockIcon');
       const lockLabel = document.getElementById('lockLabel');
-      const adminPanelBtn = document.getElementById('adminPanelBtn');
       const guideBtn = document.getElementById('guideBtn');
 
-      // Categorizer View Tabs
-      const tabWorkspaceBtn = document.getElementById('tabWorkspaceBtn');
-      const tabOrganizerBtn = document.getElementById('tabOrganizerBtn');
-      const tabWidgetsBtn = document.getElementById('tabWidgetsBtn');
-      const tabConverterBtn = document.getElementById('tabConverterBtn');
+      // Consolidated Top Navigation Buttons
+      const navBtnBoard = document.getElementById('navBtnBoard');
+      const navBtnOrganizer = document.getElementById('navBtnOrganizer');
+      const navBtnConverter = document.getElementById('navBtnConverter');
+      const navBtnPomodoro = document.getElementById('navBtnPomodoro');
 
       const workspaceViewPanel = document.getElementById('workspaceViewPanel');
       const organizerViewPanel = document.getElementById('organizerViewPanel');
-      const widgetsViewPanel = document.getElementById('widgetsViewPanel');
       const currencyViewPanel = document.getElementById('currencyViewPanel');
 
       // Organizer elements
@@ -2429,31 +2257,21 @@
       const directoryTree = document.getElementById('directoryTree');
       const organizerStats = document.getElementById('organizerStats');
 
-      // Widget elements
+      // Calculator elements
       const calcDisplay = document.getElementById('calcDisplay');
-      const widgetDirectoryList = document.getElementById('widgetDirectoryList');
-      const widgetTreeCount = document.getElementById('widgetTreeCount');
-      const statActiveTasks = document.getElementById('statActiveTasks');
-      const statCompletedTasks = document.getElementById('statCompletedTasks');
-      const statTotalAttachments = document.getElementById('statTotalAttachments');
-      const statTotalFolders = document.getElementById('statTotalFolders');
 
-      const toggleCalcWidgetBtn = document.getElementById('toggleCalcWidgetBtn');
-      const toggleTreeWidgetBtn = document.getElementById('toggleTreeWidgetBtn');
-      const toggleQuickStatsWidgetBtn = document.getElementById('toggleQuickStatsWidgetBtn');
-      const widgetCalculator = document.getElementById('widgetCalculator');
-      const widgetFileTree = document.getElementById('widgetFileTree');
-      const widgetQuickStats = document.getElementById('widgetQuickStats');
-
-      // Currency Converter Elements
+      // Currency Converter Elements (Default: USD -> PHP)
       const currencyAmount = document.getElementById('currencyAmount');
+      const amountSymbolPrefix = document.getElementById('amountSymbolPrefix');
       const currencyFrom = document.getElementById('currencyFrom');
       const currencyTo = document.getElementById('currencyTo');
       const currencySwapBtn = document.getElementById('currencySwapBtn');
       const customRateInput = document.getElementById('customRateInput');
       const currentRateDisplay = document.getElementById('currentRateDisplay');
       const conversionDirectionLabel = document.getElementById('conversionDirectionLabel');
-      const conversionOutput = document.getElementById('conversionOutput');
+      const convertedAmountText = document.getElementById('convertedAmountText');
+      const targetCurrencyLabel = document.getElementById('targetCurrencyLabel');
+      const apiRateStatus = document.getElementById('apiRateStatus');
 
       const authBtn = document.getElementById('authBtn');
       const refreshBtn = document.getElementById('refreshBtn');
@@ -2476,31 +2294,22 @@
       const attachBtn = document.getElementById('attachBtn');
       const attachmentsRail = document.getElementById('attachmentsRail');
 
+      // Comments Section Elements (Gmail-gated)
+      const commentsContainer = document.getElementById('commentsContainer');
+      const commentAuthGate = document.getElementById('commentAuthGate');
       const commentsFeed = document.getElementById('commentsFeed');
       const commentCountBadge = document.getElementById('commentCountBadge');
-      const commentAuthGate = document.getElementById('commentAuthGate');
-      const commentsContainer = document.getElementById('commentsContainer');
       const commentComposerContainer = document.getElementById('commentComposerContainer');
-      const onlineStatusBar = document.getElementById('onlineStatusBar');
-      const onlineUsersRail = document.getElementById('onlineUsersRail');
       const gateSignInBtn = document.getElementById('gateSignInBtn');
 
       // Modals
       const welcomeModalBackdrop = document.getElementById('welcomeModalBackdrop');
       const welcomeModalClose = document.getElementById('welcomeModalClose');
       const welcomeBeginBtn = document.getElementById('welcomeBeginBtn');
-      const welcomeSignInBtn = document.getElementById('welcomeSignInBtn');
 
       const tutorialModalBackdrop = document.getElementById('tutorialModalBackdrop');
       const tutorialModalClose = document.getElementById('tutorialModalClose');
       const tutorialGotItBtn = document.getElementById('tutorialGotItBtn');
-
-      const adminModalBackdrop = document.getElementById('adminModalBackdrop');
-      const adminModalClose = document.getElementById('adminModalClose');
-      const newAdminEmailInput = document.getElementById('newAdminEmailInput');
-      const addAdminBtn = document.getElementById('addAdminBtn');
-      const adminListContainer = document.getElementById('adminListContainer');
-      const userNicknamesListContainer = document.getElementById('userNicknamesListContainer');
 
       const dmModalBackdrop = document.getElementById('dmModalBackdrop');
       const dmModalClose = document.getElementById('dmModalClose');
@@ -2536,12 +2345,6 @@
         lastSeenDmCount = directMessages.length;
       } catch { directMessages = []; }
 
-      let presenceMap = {};
-      try { presenceMap = JSON.parse(localStorage.getItem(LOCAL_PRESENCE_KEY)) || {}; } catch { presenceMap = {}; }
-
-      let admins = [];
-      try { admins = JSON.parse(localStorage.getItem(LOCAL_ADMINS_KEY)) || [INITIAL_OWNER_EMAIL]; } catch { admins = [INITIAL_OWNER_EMAIL]; }
-
       let nicknames = {};
       try { nicknames = JSON.parse(localStorage.getItem(LOCAL_NICKNAMES_KEY)) || {}; } catch { nicknames = {}; }
 
@@ -2568,37 +2371,43 @@
       dismissNotificationBtn.addEventListener('click', hideNotification);
 
       // ==========================================
+      // DIRECT NAVIGATION SHORTCUTS
+      // ==========================================
+      navBtnBoard.addEventListener('click', () => switchView('workspace'));
+      navBtnOrganizer.addEventListener('click', () => switchView('organizer'));
+      navBtnConverter.addEventListener('click', () => switchView('converter'));
+      navBtnPomodoro.addEventListener('click', () => {
+        switchView('workspace');
+        showNotification('Pomodoro utility & focus active on board.', '⏱️', 3500);
+      });
+
+      // ==========================================
       // CATEGORIZER VIEW NAVIGATION
       // ==========================================
       function switchView(viewName) {
-        [tabWorkspaceBtn, tabOrganizerBtn, tabWidgetsBtn, tabConverterBtn].forEach(b => b.classList.remove('active'));
-        [workspaceViewPanel, organizerViewPanel, widgetsViewPanel, currencyViewPanel].forEach(p => p.classList.add('hidden'));
+        [navBtnBoard, navBtnOrganizer, navBtnConverter].forEach(b => {
+          if (b) b.classList.remove('active');
+        });
+        [workspaceViewPanel, organizerViewPanel, currencyViewPanel].forEach(p => {
+          if (p) p.classList.add('hidden');
+        });
 
         if (viewName === 'organizer') {
-          tabOrganizerBtn.classList.add('active');
+          navBtnOrganizer.classList.add('active');
           organizerViewPanel.classList.remove('hidden');
           renderOrganizer();
-        } else if (viewName === 'widgets') {
-          tabWidgetsBtn.classList.add('active');
-          widgetsViewPanel.classList.remove('hidden');
-          renderWidgets();
         } else if (viewName === 'converter') {
-          tabConverterBtn.classList.add('active');
+          navBtnConverter.classList.add('active');
           currencyViewPanel.classList.remove('hidden');
           calculateCurrency();
         } else {
-          tabWorkspaceBtn.classList.add('active');
+          navBtnBoard.classList.add('active');
           workspaceViewPanel.classList.remove('hidden');
         }
       }
 
-      tabWorkspaceBtn.addEventListener('click', () => switchView('workspace'));
-      tabOrganizerBtn.addEventListener('click', () => switchView('organizer'));
-      tabWidgetsBtn.addEventListener('click', () => switchView('widgets'));
-      tabConverterBtn.addEventListener('click', () => switchView('converter'));
-
       // ==========================================
-      // ATTACHMENTS & FOLDER ORGANIZER ENGINE
+      // ATTACHMENTS & FOLDER ORGANIZER ENGINE (With Per-Item File Deletion)
       // ==========================================
       createFolderBtn.addEventListener('click', () => {
         const folderName = newFolderInput.value.trim();
@@ -2611,7 +2420,6 @@
         localStorage.setItem(LOCAL_FOLDERS_KEY, JSON.stringify(folders));
         newFolderInput.value = '';
         renderOrganizer();
-        renderWidgets();
         triggerBackgroundSync();
         showNotification(`Folder "${folderName}" created.`, '📁', 3000);
       });
@@ -2638,7 +2446,9 @@
           if (folder !== 'General') {
             const deleteFolderBtn = document.createElement('button');
             deleteFolderBtn.type = 'button';
-            deleteFolderBtn.className = 'comment-delete-btn';
+            deleteFolderBtn.className = 'danger-btn';
+            deleteFolderBtn.style.padding = '4px 8px';
+            deleteFolderBtn.style.fontSize = '0.75rem';
             deleteFolderBtn.textContent = 'Remove Folder';
             deleteFolderBtn.addEventListener('click', () => {
               if (confirm(`Remove folder "${folder}"? Contained files will move to "General".`)) {
@@ -2647,7 +2457,6 @@
                 localStorage.setItem(LOCAL_FOLDERS_KEY, JSON.stringify(folders));
                 localStorage.setItem(LOCAL_ATTACHMENTS_KEY, JSON.stringify(attachments));
                 renderOrganizer();
-                renderWidgets();
                 triggerBackgroundSync();
               }
             });
@@ -2677,6 +2486,11 @@
               info.style.whiteSpace = 'nowrap';
               info.innerHTML = `<span class="doc-tag ${meta.class}" style="margin-right:6px;">${meta.tag}</span> <span style="font-size:0.85rem;">${escapeHtml(file.name)}</span>`;
 
+              const fileActions = document.createElement('div');
+              fileActions.style.display = 'flex';
+              fileActions.style.alignItems = 'center';
+              fileActions.style.gap = '6px';
+
               const moveSelect = document.createElement('select');
               folders.forEach(f => {
                 const opt = document.createElement('option');
@@ -2690,12 +2504,37 @@
                 file.folder = moveSelect.value;
                 localStorage.setItem(LOCAL_ATTACHMENTS_KEY, JSON.stringify(attachments));
                 renderOrganizer();
-                renderWidgets();
                 triggerBackgroundSync();
               });
 
+              const fileDelBtn = document.createElement('button');
+              fileDelBtn.type = 'button';
+              fileDelBtn.className = 'danger-btn';
+              fileDelBtn.style.padding = '4px 8px';
+              fileDelBtn.style.fontSize = '0.72rem';
+              fileDelBtn.style.minHeight = '28px';
+              fileDelBtn.textContent = '✕';
+              fileDelBtn.title = 'Delete file';
+              fileDelBtn.addEventListener('click', () => {
+                if (confirm(`Delete file "${file.name}"?`)) {
+                  attachments = attachments.filter(a => a.id !== file.id);
+                  localStorage.setItem(LOCAL_ATTACHMENTS_KEY, JSON.stringify(attachments));
+                  renderOrganizer();
+                  renderAttachments();
+                  if (blobUrlCache.has(file.id)) {
+                    URL.revokeObjectURL(blobUrlCache.get(file.id));
+                    blobUrlCache.delete(file.id);
+                  }
+                  triggerBackgroundSync();
+                  showNotification(`File "${file.name}" deleted.`, '🗑️', 2500);
+                }
+              });
+
+              fileActions.appendChild(moveSelect);
+              fileActions.appendChild(fileDelBtn);
+
               fileRow.appendChild(info);
-              fileRow.appendChild(moveSelect);
+              fileRow.appendChild(fileActions);
               content.appendChild(fileRow);
             });
           }
@@ -2706,24 +2545,8 @@
       }
 
       // ==========================================
-      // MODULAR WIDGETS DASHBOARD
+      // CALCULATOR LOGIC
       // ==========================================
-      toggleCalcWidgetBtn.addEventListener('click', () => {
-        toggleCalcWidgetBtn.classList.toggle('active');
-        widgetCalculator.classList.toggle('hidden', !toggleCalcWidgetBtn.classList.contains('active'));
-      });
-
-      toggleTreeWidgetBtn.addEventListener('click', () => {
-        toggleTreeWidgetBtn.classList.toggle('active');
-        widgetFileTree.classList.toggle('hidden', !toggleTreeWidgetBtn.classList.contains('active'));
-      });
-
-      toggleQuickStatsWidgetBtn.addEventListener('click', () => {
-        toggleQuickStatsWidgetBtn.classList.toggle('active');
-        widgetQuickStats.classList.toggle('hidden', !toggleQuickStatsWidgetBtn.classList.contains('active'));
-      });
-
-      // Calculator Buttons Event
       document.querySelectorAll('.calc-btn').forEach(btn => {
         btn.addEventListener('click', () => {
           const action = btn.dataset.calc;
@@ -2733,7 +2556,6 @@
             calcExpression = calcExpression.length > 1 ? calcExpression.slice(0, -1) : '0';
           } else if (action === '=') {
             try {
-              // Sanitize math string with strict numbers/operators
               const sanitized = calcExpression.replace(/×/g, '*').replace(/÷/g, '/').replace(/−/g, '-');
               if (/^[0-9+\-*/. ]+$/.test(sanitized)) {
                 calcExpression = String(Function(`'use strict'; return (${sanitized})`)());
@@ -2750,70 +2572,71 @@
               calcExpression += action;
             }
           }
-          calcDisplay.textContent = calcExpression;
+          if (calcDisplay) calcDisplay.textContent = calcExpression;
         });
       });
 
-      function renderWidgets() {
-        // Fast Tree Widget
-        widgetDirectoryList.innerHTML = '';
-        widgetTreeCount.textContent = `${attachments.length} Files`;
-
-        folders.forEach(folder => {
-          const folderFiles = attachments.filter(a => (a.folder || 'General') === folder);
-          const fItem = document.createElement('div');
-          fItem.style.background = 'rgba(8,18,33,0.6)';
-          fItem.style.padding = '8px 12px';
-          fItem.style.borderRadius = '8px';
-          fItem.style.fontSize = '0.82rem';
-
-          let filesHtml = folderFiles.map(f => `<div style="padding-left:14px; color:#93c5fd;">📄 ${escapeHtml(f.name)}</div>`).join('');
-          if (!filesHtml) filesHtml = '<div style="padding-left:14px; color:#64748b;">(empty)</div>';
-
-          fItem.innerHTML = `<strong style="color:#bae6fd;">📁 ${escapeHtml(folder)}</strong>${filesHtml}`;
-          widgetDirectoryList.appendChild(fItem);
-        });
-
-        // Quick Stats Widget
-        const activeCount = tasks.filter(t => !t.completed).length;
-        const compCount = tasks.filter(t => t.completed).length;
-        statActiveTasks.textContent = activeCount;
-        statCompletedTasks.textContent = compCount;
-        statTotalAttachments.textContent = attachments.length;
-        statTotalFolders.textContent = folders.length;
-      }
-
       // ==========================================
-      // CURRENCY CONVERTER LOGIC (PHP <-> USD)
+      // LIVE API CURRENCY CONVERTER & OVERRIDE (Default USD -> PHP)
       // ==========================================
-      let usdPhpRate = parseFloat(localStorage.getItem(LOCAL_USD_RATE_KEY)) || 58.00;
+      let usdPhpRate = parseFloat(localStorage.getItem(LOCAL_USD_RATE_KEY)) || 62.51;
       customRateInput.value = usdPhpRate.toFixed(2);
       currentRateDisplay.textContent = usdPhpRate.toFixed(2);
+
+      async function fetchLiveCurrencyRate() {
+        try {
+          const res = await fetch('https://open.er-api.com/v6/latest/USD');
+          if (!res.ok) throw new Error('API network error');
+          const data = await res.json();
+          if (data && data.rates && data.rates.PHP) {
+            const liveRate = data.rates.PHP;
+            if (!localStorage.getItem(LOCAL_USD_RATE_KEY)) {
+              usdPhpRate = liveRate;
+              customRateInput.value = usdPhpRate.toFixed(2);
+            }
+            currentRateDisplay.textContent = liveRate.toFixed(2);
+            apiRateStatus.className = 'card-status saved';
+            apiRateStatus.innerHTML = '<span class="sync-dot"></span><span>Live API Rate Active</span>';
+            calculateCurrency();
+          }
+        } catch (err) {
+          console.warn('Could not fetch live currency rate, using fallback:', err);
+          apiRateStatus.className = 'card-status error';
+          apiRateStatus.innerHTML = '<span class="sync-dot"></span><span>Offline / Fallback Rate</span>';
+          calculateCurrency();
+        }
+      }
 
       function calculateCurrency() {
         const amount = parseFloat(currencyAmount.value) || 0;
         const from = currencyFrom.value;
         const to = currencyTo.value;
-        const rate = parseFloat(customRateInput.value) || 58.00;
+        const rate = parseFloat(customRateInput.value) || usdPhpRate;
 
         currentRateDisplay.textContent = rate.toFixed(2);
         localStorage.setItem(LOCAL_USD_RATE_KEY, String(rate));
 
+        if (amountSymbolPrefix) {
+          amountSymbolPrefix.textContent = from === 'PHP' ? '₱' : '$';
+        }
+
         if (from === to) {
-          const sym = from === 'USD' ? '$' : '₱';
           conversionDirectionLabel.textContent = `${from} to ${to}`;
-          conversionOutput.textContent = `${sym}${amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${to}`;
+          convertedAmountText.textContent = amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+          targetCurrencyLabel.textContent = `${to} (${to === 'PHP' ? '₱' : '$'})`;
           return;
         }
 
         if (from === 'USD' && to === 'PHP') {
           const converted = amount * rate;
-          conversionDirectionLabel.textContent = `USD to PHP Conversion (Rate: 1 USD = ₱${rate.toFixed(2)})`;
-          conversionOutput.textContent = `₱${converted.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} PHP`;
+          conversionDirectionLabel.textContent = `USD to PHP Conversion (1 USD = ₱${rate.toFixed(2)})`;
+          convertedAmountText.textContent = converted.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+          targetCurrencyLabel.textContent = 'PHP (₱)';
         } else if (from === 'PHP' && to === 'USD') {
           const converted = rate > 0 ? amount / rate : 0;
-          conversionDirectionLabel.textContent = `PHP to USD Conversion (Rate: 1 USD = ₱${rate.toFixed(2)})`;
-          conversionOutput.textContent = `$${converted.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD`;
+          conversionDirectionLabel.textContent = `PHP to USD Conversion (1 USD = ₱${rate.toFixed(2)})`;
+          convertedAmountText.textContent = converted.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+          targetCurrencyLabel.textContent = 'USD ($)';
         }
       }
 
@@ -2841,23 +2664,6 @@
         calculateCurrency();
       });
 
-      // ==========================================
-      // SIGN IN / REGISTER TRIGGERS
-      // ==========================================
-      function triggerSignIn() {
-        if (!isGisReady || !tokenClient) {
-          setTimeout(triggerSignIn, 300);
-          return;
-        }
-        tokenClient.requestAccessToken({ prompt: 'consent' });
-      }
-
-      gateSignInBtn.addEventListener('click', triggerSignIn);
-      welcomeSignInBtn.addEventListener('click', () => {
-        closeWelcomeModal();
-        triggerSignIn();
-      });
-
       function showToast(message) {
         toastText.textContent = message;
         toastBanner.classList.add('active');
@@ -2879,25 +2685,6 @@
         lastSeenDmCount = incoming.length;
       }
 
-      // ==========================================
-      // PRESENCE HEARTBEAT & ONLINE STATUS TRACKER
-      // ==========================================
-      function startPresenceHeartbeat() {
-        if (!currentUserEmail) return;
-        
-        const updatePresence = () => {
-          if (!currentUserEmail) return;
-          presenceMap[currentUserEmail.toLowerCase()] = Date.now();
-          localStorage.setItem(LOCAL_PRESENCE_KEY, JSON.stringify(presenceMap));
-          renderOnlineUsers();
-          triggerBackgroundSync();
-        };
-
-        updatePresence();
-        if (presenceHeartbeatInterval) clearInterval(presenceHeartbeatInterval);
-        presenceHeartbeatInterval = setInterval(updatePresence, 20000);
-      }
-
       function getDisplayName(email) {
         if (!email) return 'User';
         const cleanEmail = email.toLowerCase().trim();
@@ -2905,68 +2692,6 @@
           return nicknames[cleanEmail];
         }
         return email;
-      }
-
-      function renderOnlineUsers() {
-        if (!currentUserEmail || !accessToken) {
-          onlineStatusBar.style.display = 'none';
-          return;
-        }
-
-        onlineStatusBar.style.display = 'flex';
-        onlineUsersRail.innerHTML = '';
-
-        const now = Date.now();
-        const activeThreshold = 60000;
-        let onlineCount = 0;
-        const myEmail = currentUserEmail.toLowerCase();
-
-        Object.entries(presenceMap).forEach(([email, lastSeen]) => {
-          if (now - lastSeen < activeThreshold) {
-            onlineCount++;
-            const pill = document.createElement('div');
-            pill.className = 'online-user-pill';
-            
-            const dot = document.createElement('span');
-            dot.className = 'online-dot';
-            pill.appendChild(dot);
-
-            const nameSpan = document.createElement('span');
-            const displayName = getDisplayName(email);
-            nameSpan.textContent = email === myEmail ? `${displayName} (You)` : displayName;
-            pill.appendChild(nameSpan);
-
-            const unreadCount = directMessages.filter(m => m.sender === email && m.recipient === myEmail && !m.read).length;
-            if (unreadCount > 0) {
-              const badge = document.createElement('span');
-              badge.className = 'unread-badge';
-              badge.textContent = unreadCount;
-              pill.appendChild(badge);
-            }
-
-            if (email !== myEmail) {
-              pill.title = `Click to message ${displayName}`;
-              pill.addEventListener('click', () => {
-                directMessages.forEach(m => {
-                  if (m.sender === email && m.recipient === myEmail) m.read = true;
-                });
-                localStorage.setItem(LOCAL_DMS_KEY, JSON.stringify(directMessages));
-                renderOnlineUsers();
-                openDmModal(email, displayName);
-              });
-            }
-
-            onlineUsersRail.appendChild(pill);
-          }
-        });
-
-        if (onlineCount === 0) {
-          const info = document.createElement('span');
-          info.style.color = '#64748b';
-          info.style.fontSize = '0.8rem';
-          info.textContent = 'No other users online right now.';
-          onlineUsersRail.appendChild(info);
-        }
       }
 
       // ==========================================
@@ -2984,7 +2709,6 @@
         dmModalBackdrop.classList.remove('active');
         activeDmRecipient = null;
         dmInput.value = '';
-        renderOnlineUsers();
       }
 
       dmModalClose.addEventListener('click', closeDmModal);
@@ -3090,148 +2814,6 @@
       });
 
       // ==========================================
-      // ADMIN PANEL & PERMISSIONS SYSTEM
-      // ==========================================
-      function isUserAdmin(email) {
-        if (!email) return false;
-        return admins.map(a => a.toLowerCase()).includes(email.toLowerCase());
-      }
-
-      function updateAdminUI() {
-        if (currentUserEmail && isUserAdmin(currentUserEmail)) {
-          adminPanelBtn.style.display = 'inline-flex';
-        } else {
-          adminPanelBtn.style.display = 'none';
-          adminModalBackdrop.classList.remove('active');
-        }
-      }
-
-      adminPanelBtn.addEventListener('click', () => {
-        if (!currentUserEmail || !isUserAdmin(currentUserEmail)) {
-          alert('Access denied. Admin privileges required.');
-          return;
-        }
-        renderAdminModalContent();
-        adminModalBackdrop.classList.add('active');
-      });
-
-      adminModalClose.addEventListener('click', () => { adminModalBackdrop.classList.remove('active'); });
-      adminModalBackdrop.addEventListener('click', (e) => {
-        if (e.target === adminModalBackdrop) adminModalBackdrop.classList.remove('active');
-      });
-
-      addAdminBtn.addEventListener('click', () => {
-        if (!currentUserEmail || !isUserAdmin(currentUserEmail)) return;
-        const newEmail = newAdminEmailInput.value.trim().toLowerCase();
-        if (!newEmail || !newEmail.includes('@')) {
-          alert('Please enter a valid email address.');
-          return;
-        }
-
-        if (!admins.map(a => a.toLowerCase()).includes(newEmail)) {
-          admins.push(newEmail);
-          localStorage.setItem(LOCAL_ADMINS_KEY, JSON.stringify(admins));
-          newAdminEmailInput.value = '';
-          renderAdminModalContent();
-          triggerBackgroundSync();
-          alert(`Successfully added ${newEmail} as an admin.`);
-        } else {
-          alert('This email is already an administrator.');
-        }
-      });
-
-      function renderAdminModalContent() {
-        adminListContainer.innerHTML = '';
-        admins.forEach(adminEmail => {
-          const li = document.createElement('li');
-          li.className = 'admin-list-item';
-          
-          const span = document.createElement('span');
-          span.textContent = adminEmail;
-          li.appendChild(span);
-
-          if (adminEmail.toLowerCase() !== INITIAL_OWNER_EMAIL.toLowerCase() && admins.length > 1) {
-            const removeBtn = document.createElement('button');
-            removeBtn.type = 'button';
-            removeBtn.className = 'comment-delete-btn';
-            removeBtn.textContent = 'Remove';
-            removeBtn.addEventListener('click', () => {
-              if (confirm(`Remove admin privileges from ${adminEmail}?`)) {
-                admins = admins.filter(a => a.toLowerCase() !== adminEmail.toLowerCase());
-                localStorage.setItem(LOCAL_ADMINS_KEY, JSON.stringify(admins));
-                renderAdminModalContent();
-                updateAdminUI();
-                triggerBackgroundSync();
-              }
-            });
-            li.appendChild(removeBtn);
-          } else {
-            const badge = document.createElement('span');
-            badge.style.fontSize = '0.75rem';
-            badge.style.color = '#93c5fd';
-            badge.textContent = '(Primary Owner)';
-            li.appendChild(badge);
-          }
-
-          adminListContainer.appendChild(li);
-        });
-
-        const uniqueUsers = new Set();
-        if (currentUserEmail) uniqueUsers.add(currentUserEmail.toLowerCase());
-        comments.forEach(c => {
-          if (c.authorEmail) uniqueUsers.add(c.authorEmail.toLowerCase());
-          else if (c.author && c.author.includes('@')) uniqueUsers.add(c.author.toLowerCase());
-        });
-        Object.keys(presenceMap).forEach(e => uniqueUsers.add(e));
-
-        userNicknamesListContainer.innerHTML = '';
-        if (uniqueUsers.size === 0) {
-          const empty = document.createElement('div');
-          empty.className = 'empty-feed';
-          empty.style.padding = '10px';
-          empty.textContent = 'No active users detected yet.';
-          userNicknamesListContainer.appendChild(empty);
-          return;
-        }
-
-        uniqueUsers.forEach(email => {
-          const li = document.createElement('li');
-          li.className = 'user-list-item';
-
-          const infoDiv = document.createElement('div');
-          infoDiv.style.display = 'flex';
-          infoDiv.style.flexDirection = 'column';
-          infoDiv.style.gap = '2px';
-
-          const emailSpan = document.createElement('span');
-          emailSpan.style.fontWeight = '600';
-          emailSpan.style.fontSize = '0.84rem';
-          emailSpan.textContent = email;
-          infoDiv.appendChild(emailSpan);
-
-          const input = document.createElement('input');
-          input.type = 'text';
-          input.className = 'user-nickname-input';
-          input.placeholder = 'Set nickname...';
-          input.value = nicknames[email] || '';
-          input.maxLength = 40;
-
-          input.addEventListener('input', () => {
-            const val = input.value.trim();
-            if (val) { nicknames[email] = val; } else { delete nicknames[email]; }
-            localStorage.setItem(LOCAL_NICKNAMES_KEY, JSON.stringify(nicknames));
-            renderComments();
-            renderOnlineUsers();
-            triggerBackgroundSync();
-          });
-
-          li.appendChild(infoDiv);
-          li.appendChild(input);
-          userNicknamesListContainer.appendChild(li);
-        });
-      }
-
-      // ==========================================
       // LAYOUT LOCK / UNLOCK SYSTEM
       // ==========================================
       function updateLayoutLockUI() {
@@ -3287,7 +2869,6 @@
         currentUserEmail = null;
         localStorage.removeItem(SESSION_USER_KEY);
         updateAuthGateUI();
-        updateAdminUI();
       }
 
       function clearSessionExpiredUI() {
@@ -3309,6 +2890,14 @@
 
       authStatus.addEventListener('click', () => {
         if (authStatus.classList.contains('clickable')) triggerInteractiveReconnect();
+      });
+
+      gateSignInBtn.addEventListener('click', () => {
+        if (!isGisReady || !tokenClient) {
+          triggerInteractiveReconnect();
+          return;
+        }
+        tokenClient.requestAccessToken({ prompt: 'consent' });
       });
 
       function silentlyRenewToken() {
@@ -3518,7 +3107,6 @@
             fetchRecentEmails();
           } else {
             updateAuthGateUI();
-            updateAdminUI();
           }
         } catch (err) {
           console.error('Error initializing GIS:', err);
@@ -3542,12 +3130,10 @@
           }
           if (res.ok) {
             const data = await res.json();
-            currentUserEmail = data.emailAddress || 'User';
+            currentUserEmail = (data.emailAddress || 'User').trim();
             localStorage.setItem(SESSION_USER_KEY, currentUserEmail);
             if (currentUserEmail) plannerTitle.textContent = `Tasks (${currentUserEmail})`;
             updateAuthGateUI();
-            updateAdminUI();
-            startPresenceHeartbeat();
           }
         } catch (e) {
           console.error('Fetch profile err:', e);
@@ -3566,8 +3152,6 @@
 
         if (email) plannerTitle.textContent = `Tasks (${email})`;
         updateAuthGateUI();
-        updateAdminUI();
-        startPresenceHeartbeat();
       }
 
       function setLoggedOutUI() {
@@ -3586,9 +3170,7 @@
 
         currentUserEmail = null;
         localStorage.removeItem(SESSION_USER_KEY);
-        if (presenceHeartbeatInterval) clearInterval(presenceHeartbeatInterval);
         updateAuthGateUI();
-        updateAdminUI();
       }
 
       authBtn.addEventListener('click', () => {
@@ -3652,15 +3234,169 @@
         setLoggedOutUI();
         renderTasks();
         renderAttachments();
-        renderComments();
         renderOrganizer();
-        renderWidgets();
+        renderComments();
         showNotification('Signed out. Local session data has been cleared.', '🔒', 4000);
       });
 
       function setSyncStatus(text, statusClass) {
         noteStatus.className = `card-status ${statusClass || ''}`;
         noteStatus.innerHTML = `<span class="sync-dot"></span><span>${escapeHtml(text)}</span>`;
+      }
+
+      // ==========================================
+      // SHARED ACTIVITY & COMMENTS (GMAIL GATED)
+      // ==========================================
+      function updateAuthGateUI() {
+        const isLoggedIn = Boolean(accessToken && currentUserEmail);
+        if (isLoggedIn) {
+          commentsContainer.style.display = 'flex';
+          commentAuthGate.style.display = 'none';
+          renderCommentComposer();
+          renderComments();
+        } else {
+          commentsContainer.style.display = 'none';
+          commentAuthGate.style.display = 'block';
+          commentCountBadge.textContent = '';
+        }
+      }
+
+      function renderCommentComposer() {
+        commentComposerContainer.innerHTML = '';
+        if (!accessToken || !currentUserEmail) return;
+
+        const composer = document.createElement('div');
+        composer.className = 'comment-composer';
+
+        const displayName = getDisplayName(currentUserEmail);
+        const userTag = document.createElement('div');
+        userTag.className = 'comment-user-indicator';
+        userTag.textContent = `Posting as: ${displayName} (${currentUserEmail})`;
+
+        const inputRow = document.createElement('div');
+        inputRow.className = 'comment-input-row';
+
+        const commentInput = document.createElement('input');
+        commentInput.type = 'text';
+        commentInput.id = 'commentInput';
+        commentInput.placeholder = 'Write a comment or shared workspace update...';
+        commentInput.maxLength = 300;
+        commentInput.autocomplete = 'off';
+
+        const postBtn = document.createElement('button');
+        postBtn.type = 'button';
+        postBtn.className = 'primary-btn';
+        postBtn.textContent = 'Post';
+
+        const submitComment = () => {
+          const textVal = commentInput.value.trim();
+          if (!textVal) return;
+          if (!currentUserEmail) {
+            alert('You must be signed in with Google to post.');
+            return;
+          }
+
+          const newComment = {
+            id: crypto.randomUUID(),
+            authorEmail: currentUserEmail.toLowerCase().trim(),
+            author: currentUserEmail.trim(),
+            text: textVal,
+            timestamp: new Date().toLocaleString()
+          };
+
+          comments.unshift(newComment);
+          localStorage.setItem(LOCAL_COMMENTS_KEY, JSON.stringify(comments));
+          renderComments();
+          triggerBackgroundSync();
+          commentInput.value = '';
+          showNotification('New shared comment posted.', '💬', 3000);
+        };
+
+        postBtn.addEventListener('click', submitComment);
+        commentInput.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') submitComment();
+        });
+
+        inputRow.appendChild(commentInput);
+        inputRow.appendChild(postBtn);
+
+        composer.appendChild(userTag);
+        composer.appendChild(inputRow);
+        commentComposerContainer.appendChild(composer);
+      }
+
+      function renderComments() {
+        if (!accessToken || !currentUserEmail) {
+          commentsFeed.innerHTML = '';
+          commentCountBadge.textContent = '';
+          return;
+        }
+
+        commentsFeed.innerHTML = '';
+        const count = comments.length;
+        commentCountBadge.textContent = count === 1 ? '1 comment' : `${count} comments`;
+
+        if (count === 0) {
+          const empty = document.createElement('div');
+          empty.className = 'empty-feed';
+          empty.textContent = 'No comments yet. Share an update above!';
+          commentsFeed.appendChild(empty);
+          return;
+        }
+
+        comments.forEach(comm => {
+          const item = document.createElement('div');
+          item.className = 'comment-item';
+
+          const body = document.createElement('div');
+          body.className = 'comment-body';
+
+          const meta = document.createElement('div');
+          meta.className = 'comment-meta';
+
+          const rawEmail = (comm.authorEmail || comm.author || comm.sender || 'User').trim();
+          const authorName = getDisplayName(rawEmail);
+
+          const author = document.createElement('span');
+          author.className = 'comment-author';
+          author.textContent = authorName;
+          author.title = `Click to direct message ${rawEmail}`;
+          author.addEventListener('click', () => {
+            if (currentUserEmail && rawEmail.toLowerCase() !== currentUserEmail.toLowerCase()) {
+              openDmModal(rawEmail, authorName);
+            }
+          });
+
+          const time = document.createElement('span');
+          time.textContent = `• ${comm.timestamp || 'Recent'}`;
+
+          meta.appendChild(author);
+          meta.appendChild(time);
+
+          const text = document.createElement('div');
+          text.className = 'comment-text';
+          text.textContent = comm.text || '';
+
+          body.appendChild(meta);
+          body.appendChild(text);
+          item.appendChild(body);
+
+          const delBtn = document.createElement('button');
+          delBtn.type = 'button';
+          delBtn.className = 'comment-delete-btn';
+          delBtn.textContent = '🗑️ Delete';
+          delBtn.title = 'Delete comment';
+          delBtn.addEventListener('click', () => {
+            comments = comments.filter(c => c.id !== comm.id);
+            localStorage.setItem(LOCAL_COMMENTS_KEY, JSON.stringify(comments));
+            renderComments();
+            triggerBackgroundSync();
+            showNotification('Comment deleted.', '🗑️', 2500);
+          });
+          item.appendChild(delBtn);
+
+          commentsFeed.appendChild(item);
+        });
       }
 
       // ==========================================
@@ -3705,9 +3441,6 @@
             folders: folders,
             comments: comments,
             directMessages: directMessages,
-            presenceMap: presenceMap,
-            admins: admins,
-            nicknames: nicknames,
             clientTimestamp: Date.now()
           };
 
@@ -3797,9 +3530,6 @@
             folders: folders,
             comments: comments,
             directMessages: directMessages,
-            presenceMap: presenceMap,
-            admins: admins,
-            nicknames: nicknames,
             clientTimestamp: Date.now()
           };
 
@@ -3900,8 +3630,18 @@
               const incomingComments = cloudData.comments;
               const mergedMap = new Map();
               
-              incomingComments.forEach(c => { if (c && c.id) mergedMap.set(c.id, c); });
-              comments.forEach(c => { if (c && c.id && !mergedMap.has(c.id)) mergedMap.set(c.id, c); });
+              incomingComments.forEach(c => {
+                if (c && (c.id || c.text)) {
+                  const id = c.id || `${c.authorEmail || c.author || 'anon'}_${c.timestamp}`;
+                  mergedMap.set(id, { ...c, id });
+                }
+              });
+
+              comments.forEach(c => {
+                if (c && c.id && !mergedMap.has(c.id)) {
+                  mergedMap.set(c.id, c);
+                }
+              });
 
               comments = Array.from(mergedMap.values());
               comments.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
@@ -3916,27 +3656,7 @@
               if (activeDmRecipient) renderDmConversation();
             }
 
-            if (cloudData.presenceMap && typeof cloudData.presenceMap === 'object') {
-              presenceMap = { ...presenceMap, ...cloudData.presenceMap };
-              localStorage.setItem(LOCAL_PRESENCE_KEY, JSON.stringify(presenceMap));
-              renderOnlineUsers();
-            }
-
-            if (Array.isArray(cloudData.admins)) {
-              admins = Array.from(new Set([...admins, ...cloudData.admins]));
-              localStorage.setItem(LOCAL_ADMINS_KEY, JSON.stringify(admins));
-              updateAdminUI();
-            }
-
-            if (cloudData.nicknames && typeof cloudData.nicknames === 'object') {
-              nicknames = { ...nicknames, ...cloudData.nicknames };
-              localStorage.setItem(LOCAL_NICKNAMES_KEY, JSON.stringify(nicknames));
-              renderComments();
-              renderOnlineUsers();
-            }
-
             renderOrganizer();
-            renderWidgets();
           }
           setSyncStatus('Synced with Google Cloud', 'saved');
         } catch (err) {
@@ -3978,160 +3698,6 @@
         } else {
           await pollDriveMetadata();
         }
-      }
-
-      // ==========================================
-      // COMMENTS ENGINE
-      // ==========================================
-      function updateAuthGateUI() {
-        const isLoggedIn = Boolean(accessToken && currentUserEmail);
-        if (isLoggedIn) {
-          commentsContainer.style.display = 'flex';
-          commentAuthGate.style.display = 'none';
-          renderCommentComposer();
-          renderComments();
-          renderOnlineUsers();
-        } else {
-          commentsContainer.style.display = 'none';
-          commentAuthGate.style.display = 'block';
-          commentCountBadge.textContent = '';
-          onlineStatusBar.style.display = 'none';
-        }
-      }
-
-      function renderCommentComposer() {
-        commentComposerContainer.innerHTML = '';
-        if (!accessToken || !currentUserEmail) return;
-
-        const composer = document.createElement('div');
-        composer.className = 'comment-composer';
-
-        const displayName = getDisplayName(currentUserEmail);
-        const userTag = document.createElement('div');
-        userTag.className = 'comment-user-indicator';
-        userTag.textContent = `Posting as: ${displayName} (${currentUserEmail})`;
-
-        const inputRow = document.createElement('div');
-        inputRow.className = 'comment-input-row';
-
-        const commentInput = document.createElement('input');
-        commentInput.type = 'text';
-        commentInput.id = 'commentInput';
-        commentInput.placeholder = 'Write a comment or shared workspace update...';
-        commentInput.maxLength = 300;
-        commentInput.autocomplete = 'off';
-
-        const postBtn = document.createElement('button');
-        postBtn.type = 'button';
-        postBtn.className = 'primary-btn';
-        postBtn.textContent = 'Post';
-
-        const submitComment = () => {
-          const textVal = commentInput.value.trim();
-          if (!textVal) return;
-          if (!currentUserEmail) {
-            alert('You must be signed in to post.');
-            return;
-          }
-
-          const newComment = {
-            id: crypto.randomUUID(),
-            authorEmail: currentUserEmail.toLowerCase(),
-            text: textVal,
-            timestamp: new Date().toLocaleString()
-          };
-
-          comments.unshift(newComment);
-          localStorage.setItem(LOCAL_COMMENTS_KEY, JSON.stringify(comments));
-          renderComments();
-          triggerBackgroundSync();
-          commentInput.value = '';
-          showNotification('New shared comment posted.', '💬', 3000);
-        };
-
-        postBtn.addEventListener('click', submitComment);
-        commentInput.addEventListener('keydown', (e) => {
-          if (e.key === 'Enter') submitComment();
-        });
-
-        inputRow.appendChild(commentInput);
-        inputRow.appendChild(postBtn);
-
-        composer.appendChild(userTag);
-        composer.appendChild(inputRow);
-        commentComposerContainer.appendChild(composer);
-      }
-
-      function renderComments() {
-        commentsFeed.innerHTML = '';
-        const count = comments.length;
-        commentCountBadge.textContent = count === 1 ? '1 comment' : `${count} comments`;
-
-        if (count === 0) {
-          const empty = document.createElement('div');
-          empty.className = 'empty-feed';
-          empty.textContent = 'No comments yet. Be the first to share an update!';
-          commentsFeed.appendChild(empty);
-          return;
-        }
-
-        comments.forEach(comm => {
-          const item = document.createElement('div');
-          item.className = 'comment-item';
-
-          const body = document.createElement('div');
-          body.className = 'comment-body';
-
-          const meta = document.createElement('div');
-          meta.className = 'comment-meta';
-
-          const rawEmail = comm.authorEmail || comm.author || 'User';
-          const authorName = getDisplayName(rawEmail);
-
-          const author = document.createElement('span');
-          author.className = 'comment-author';
-          author.textContent = authorName;
-          author.title = `Click to direct message ${rawEmail}`;
-          author.addEventListener('click', () => {
-            if (currentUserEmail && rawEmail.toLowerCase() !== currentUserEmail.toLowerCase()) {
-              openDmModal(rawEmail, authorName);
-            }
-          });
-
-          const time = document.createElement('span');
-          time.textContent = `• ${comm.timestamp || 'Recent'}`;
-
-          meta.appendChild(author);
-          meta.appendChild(time);
-
-          const text = document.createElement('div');
-          text.className = 'comment-text';
-          text.textContent = comm.text;
-
-          body.appendChild(meta);
-          body.appendChild(text);
-          item.appendChild(body);
-
-          const isAuthor = currentUserEmail && rawEmail.toLowerCase() === currentUserEmail.toLowerCase();
-          const isAdmin = currentUserEmail && isUserAdmin(currentUserEmail);
-
-          if (isAdmin || isAuthor) {
-            const delBtn = document.createElement('button');
-            delBtn.type = 'button';
-            delBtn.className = 'comment-delete-btn';
-            delBtn.textContent = '🗑️ Delete';
-            delBtn.title = 'Delete comment';
-            delBtn.addEventListener('click', () => {
-              comments = comments.filter(c => c.id !== comm.id);
-              localStorage.setItem(LOCAL_COMMENTS_KEY, JSON.stringify(comments));
-              renderComments();
-              triggerBackgroundSync();
-            });
-            item.appendChild(delBtn);
-          }
-
-          commentsFeed.appendChild(item);
-        });
       }
 
       // ==========================================
@@ -4348,7 +3914,6 @@
           localStorage.setItem(LOCAL_ATTACHMENTS_KEY, JSON.stringify(attachments));
           renderAttachments();
           renderOrganizer();
-          renderWidgets();
           await triggerBackgroundSync();
           setSyncStatus('Synced with Google Cloud', 'saved');
           showNotification(`Attachment "${fileName}" uploaded to "General".`, '📎', 3000);
@@ -4403,7 +3968,6 @@
         localStorage.setItem(LOCAL_ATTACHMENTS_KEY, JSON.stringify(attachments));
         renderAttachments();
         renderOrganizer();
-        renderWidgets();
 
         if (blobUrlCache.has(fileId)) {
           URL.revokeObjectURL(blobUrlCache.get(fileId));
@@ -4592,7 +4156,6 @@
         const remaining = tasks.filter(t => !t.completed).length;
         const total = tasks.length;
         taskStats.textContent = `${total === 1 ? '1 task' : `${total} tasks`} • ${remaining} left`;
-        renderWidgets();
       }
 
       function renderTasks() {
@@ -4753,10 +4316,8 @@
         renderTasks();
         renderAttachments();
         renderOrganizer();
-        renderWidgets();
-        calculateCurrency();
+        fetchLiveCurrencyRate();
         updateAuthGateUI();
-        updateAdminUI();
         checkWelcomeSplash();
 
         if (accessToken) {
