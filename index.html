@@ -33,14 +33,93 @@
         margin: 0;
         min-height: 100vh;
         display: flex;
-        justify-content: center;
+        flex-direction: column;
+        justify-content: flex-start;
         align-items: center;
         font-family: Inter, "Segoe UI", sans-serif;
         background:
           radial-gradient(circle at top, rgba(56, 189, 248, 0.2), transparent 45%),
           linear-gradient(160deg, #030d1a 0%, var(--bg) 100%);
         color: var(--text);
-        padding: 24px 16px;
+        padding: 0 0 calc(48px + env(safe-area-inset-bottom, 0px)) 0;
+      }
+
+      /* Notification Bar */
+      .app-notification-bar {
+        width: 100%;
+        background: linear-gradient(90deg, #0284c7, #0369a1, #0f233d);
+        border-bottom: 1px solid rgba(56, 189, 248, 0.35);
+        color: #f0f9ff;
+        padding: 10px 24px;
+        font-size: 0.88rem;
+        display: none;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+        z-index: 1000;
+        animation: slideDown 0.3s ease;
+      }
+
+      .app-notification-bar.active {
+        display: flex;
+      }
+
+      @keyframes slideDown {
+        from { transform: translateY(-100%); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+      }
+
+      .notification-content {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex: 1;
+        min-width: 0;
+      }
+
+      .notification-icon {
+        font-size: 1.1rem;
+        flex-shrink: 0;
+      }
+
+      .notification-text {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-weight: 500;
+      }
+
+      .notification-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-shrink: 0;
+      }
+
+      .notification-btn-dismiss {
+        background: rgba(15, 35, 61, 0.7);
+        border: 1px solid rgba(56, 189, 248, 0.3);
+        color: #bae6fd;
+        border-radius: 8px;
+        padding: 4px 10px;
+        font-size: 0.78rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+
+      .notification-btn-dismiss:hover {
+        background: rgba(239, 68, 68, 0.3);
+        border-color: rgba(248, 113, 113, 0.5);
+        color: #ffffff;
+      }
+
+      .app-container-wrapper {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        padding: 24px calc(24px + env(safe-area-inset-right, 0px)) 0 16px;
       }
 
       .app {
@@ -52,6 +131,7 @@
         box-shadow: 0 24px 80px var(--shadow);
         backdrop-filter: blur(14px);
         overflow: hidden;
+        margin-bottom: 20px;
       }
 
       .header {
@@ -141,6 +221,53 @@
         border-color: var(--primary-2);
         color: #ffffff;
         box-shadow: 0 0 14px rgba(56, 189, 248, 0.35);
+      }
+
+      /* View Categorizer Nav Tab Bar */
+      .view-nav-bar {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 28px 0;
+        background: rgba(12, 25, 44, 0.4);
+        border-bottom: 1px solid rgba(56, 189, 248, 0.15);
+        overflow-x: auto;
+      }
+
+      .view-tab-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 18px;
+        background: transparent;
+        border: none;
+        border-bottom: 3px solid transparent;
+        border-radius: 8px 8px 0 0;
+        color: var(--muted);
+        font-weight: 600;
+        font-size: 0.92rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+      }
+
+      .view-tab-btn:hover {
+        color: #e0f2fe;
+        background: rgba(56, 189, 248, 0.08);
+      }
+
+      .view-tab-btn.active {
+        color: #ffffff;
+        border-bottom-color: var(--primary-2);
+        background: rgba(56, 189, 248, 0.14);
+      }
+
+      .tab-panel {
+        display: block;
+      }
+
+      .tab-panel.hidden {
+        display: none !important;
       }
 
       .workspace-grid {
@@ -318,7 +445,9 @@
       }
 
       input[type="text"]:focus,
-      textarea:focus {
+      input[type="number"]:focus,
+      textarea:focus,
+      select:focus {
         border-color: var(--primary-2);
         box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
       }
@@ -982,8 +1111,347 @@
       }
 
       /* ==========================================
-         ONLINE STATUS BAR & DIRECT MESSAGING (DM)
-         ========================================== */
+          ORGANIZER DIRECTORY PANEL
+          ========================================== */
+      .organizer-wrapper {
+        padding: 24px 28px 28px;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+
+      .organizer-toolbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: rgba(12, 25, 44, 0.65);
+        border: 1px solid rgba(56, 189, 248, 0.2);
+        border-radius: 14px;
+        padding: 12px 18px;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+
+      .organizer-actions {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+      }
+
+      .organizer-actions input[type="text"] {
+        background: rgba(8, 18, 33, 0.85);
+        border: 1px solid rgba(56, 189, 248, 0.25);
+        border-radius: 10px;
+        padding: 8px 12px;
+        color: var(--text);
+        font-size: 0.88rem;
+        outline: none;
+      }
+
+      .directory-tree {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .folder-card {
+        background: rgba(12, 25, 44, 0.7);
+        border: 1px solid rgba(56, 189, 248, 0.18);
+        border-radius: 14px;
+        padding: 14px 18px;
+      }
+
+      .folder-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-weight: 700;
+        color: #bae6fd;
+        font-size: 1rem;
+        margin-bottom: 10px;
+        padding-bottom: 6px;
+        border-bottom: 1px solid rgba(56, 189, 248, 0.12);
+      }
+
+      .folder-title-box {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .folder-contents {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: 12px;
+      }
+
+      .folder-file-item {
+        background: rgba(15, 35, 61, 0.9);
+        border: 1px solid rgba(56, 189, 248, 0.2);
+        border-radius: 10px;
+        padding: 8px 12px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .folder-file-item select {
+        background: rgba(8, 18, 33, 0.8);
+        border: 1px solid rgba(56, 189, 248, 0.25);
+        border-radius: 6px;
+        color: #93c5fd;
+        font-size: 0.75rem;
+        padding: 4px 6px;
+        outline: none;
+      }
+
+      /* ==========================================
+          WIDGETS DASHBOARD TAB
+          ========================================== */
+      .widgets-wrapper {
+        padding: 24px 28px 28px;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+
+      .widgets-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+        gap: 20px;
+      }
+
+      .widget-box {
+        background: rgba(12, 25, 44, 0.7);
+        border: 1px solid rgba(56, 189, 248, 0.2);
+        border-radius: 18px;
+        padding: 18px 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+      }
+
+      .widget-box.hidden {
+        display: none !important;
+      }
+
+      .widget-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid rgba(56, 189, 248, 0.15);
+        padding-bottom: 8px;
+      }
+
+      .widget-title {
+        font-weight: 700;
+        font-size: 1.05rem;
+        color: #e0f2fe;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      /* Mini Calc Widget */
+      .calc-display {
+        background: rgba(8, 18, 33, 0.9);
+        border: 1px solid rgba(56, 189, 248, 0.25);
+        border-radius: 10px;
+        padding: 12px;
+        text-align: right;
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #ffffff;
+        min-height: 48px;
+        overflow-x: auto;
+      }
+
+      .calc-keypad {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 8px;
+      }
+
+      .calc-btn {
+        background: rgba(15, 35, 61, 0.85);
+        border: 1px solid rgba(56, 189, 248, 0.2);
+        color: #bae6fd;
+        font-size: 1.1rem;
+        font-weight: 600;
+        padding: 10px 0;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.15s ease;
+      }
+
+      .calc-btn:hover {
+        background: rgba(56, 189, 248, 0.25);
+        color: #ffffff;
+      }
+
+      .calc-btn.op {
+        background: rgba(2, 132, 199, 0.35);
+        color: #ffffff;
+      }
+
+      /* Currency converter card */
+      .currency-panel-wrapper {
+        padding: 28px;
+        display: flex;
+        justify-content: center;
+      }
+
+      .currency-card {
+        background: rgba(12, 25, 44, 0.75);
+        border: 1px solid rgba(56, 189, 248, 0.25);
+        border-radius: 20px;
+        padding: 28px;
+        width: 100%;
+        max-width: 640px;
+        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+
+      .currency-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid rgba(56, 189, 248, 0.15);
+        padding-bottom: 12px;
+      }
+
+      .currency-card-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #e0f2fe;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .currency-form {
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+      }
+
+      .currency-row {
+        display: flex;
+        gap: 12px;
+        align-items: flex-end;
+      }
+
+      .currency-input-group {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      .currency-input-group label {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #93c5fd;
+      }
+
+      .currency-input-group input,
+      .currency-input-group select {
+        background: rgba(8, 18, 33, 0.85);
+        border: 1px solid rgba(56, 189, 248, 0.25);
+        border-radius: 12px;
+        color: var(--text);
+        padding: 12px 14px;
+        font-size: 1rem;
+        outline: none;
+        transition: all 0.2s ease;
+      }
+
+      .currency-swap-btn {
+        background: rgba(2, 132, 199, 0.25);
+        border: 1px solid rgba(56, 189, 248, 0.35);
+        color: #bae6fd;
+        border-radius: 12px;
+        width: 48px;
+        height: 48px;
+        font-size: 1.25rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        flex-shrink: 0;
+        transition: all 0.2s ease;
+      }
+
+      .currency-swap-btn:hover {
+        background: rgba(2, 132, 199, 0.45);
+        color: #ffffff;
+        border-color: var(--primary-2);
+        transform: rotate(180deg);
+      }
+
+      .currency-rate-info {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: rgba(8, 18, 33, 0.6);
+        border: 1px dashed rgba(56, 189, 248, 0.2);
+        border-radius: 12px;
+        padding: 10px 14px;
+        font-size: 0.85rem;
+        color: #94a3b8;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .rate-edit-row {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .rate-edit-input {
+        background: rgba(15, 35, 61, 0.9);
+        border: 1px solid rgba(56, 189, 248, 0.3);
+        border-radius: 6px;
+        color: #bae6fd;
+        width: 70px;
+        padding: 4px 6px;
+        font-size: 0.85rem;
+        outline: none;
+        text-align: right;
+      }
+
+      .currency-result-box {
+        background: linear-gradient(135deg, rgba(2, 132, 199, 0.2), rgba(56, 189, 248, 0.08));
+        border: 1px solid rgba(56, 189, 248, 0.3);
+        border-radius: 16px;
+        padding: 16px 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+
+      .currency-result-label {
+        font-size: 0.82rem;
+        color: #93c5fd;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+
+      .currency-result-value {
+        font-size: 1.85rem;
+        font-weight: 800;
+        color: #ffffff;
+        letter-spacing: -0.02em;
+        word-break: break-all;
+      }
+
+      /* Online Status Bar & Direct Messaging */
       .online-status-bar {
         display: flex;
         align-items: center;
@@ -1038,7 +1506,6 @@
         box-shadow: 0 0 6px var(--success);
       }
 
-      /* Unread Badge on User Pill */
       .unread-badge {
         position: absolute;
         top: -5px;
@@ -1056,7 +1523,7 @@
         box-shadow: 0 2px 6px rgba(239, 68, 68, 0.5);
       }
 
-      /* On-screen Toast Alert Banner */
+      /* Toast Banner */
       .toast-banner {
         position: fixed;
         bottom: 24px;
@@ -1173,7 +1640,7 @@
         outline: none;
       }
 
-      /* Shared Activity & Comments Section */
+      /* Comments section */
       .comments-card {
         background: rgba(12, 25, 44, 0.65);
         border: 1px solid rgba(56, 189, 248, 0.2);
@@ -1306,7 +1773,7 @@
         gap: 12px;
       }
 
-      /* Admin & General Modal Styling */
+      /* Modals */
       .admin-modal-backdrop, .general-modal-backdrop, .dm-modal-backdrop {
         position: fixed;
         inset: 0;
@@ -1376,16 +1843,6 @@
         color: #cbd5e1;
       }
 
-      .general-modal-body h3 {
-        margin: 0 0 4px 0;
-        color: #bae6fd;
-        font-size: 1rem;
-      }
-
-      .general-modal-body p {
-        margin: 0 0 12px 0;
-      }
-
       .admin-section {
         display: flex;
         flex-direction: column;
@@ -1450,270 +1907,364 @@
         outline: none;
       }
 
-      /* Responsive Layout Rules */
       @media (max-width: 1200px) {
         .workspace-grid { grid-template-columns: 1fr 1fr; }
         .workspace-grid > .column-card:nth-child(3) { grid-column: span 2; }
       }
 
       @media (max-width: 768px) {
-        body {
-          padding: 8px 6px;
-        }
-
-        .app {
-          border-radius: 16px;
-        }
-
-        .header {
-          padding: 16px 14px;
-          gap: 12px;
-        }
-
-        .header-title-block {
-          flex: 1 1 100%;
-        }
-
-        h1 {
-          font-size: 1.4rem;
-        }
-
-        .subtitle {
-          font-size: 0.84rem;
-        }
-
-        .quick-links {
-          width: 100%;
-          gap: 8px;
-        }
-
-        .quick-btn,
-        .lock-toggle-btn,
-        .guide-btn {
-          flex: 1 1 auto;
-          justify-content: center;
-          padding: 8px 10px;
-          font-size: 0.82rem;
-        }
-
-        .workspace-grid {
-          grid-template-columns: 1fr;
-          padding: 14px 12px 18px;
-          gap: 16px;
-        }
-
-        .workspace-grid > .column-card:nth-child(3) {
-          grid-column: span 1;
-        }
-
-        .column-card {
-          padding: 14px;
-          border-radius: 14px;
-        }
-
-        .card-drag-handle {
-          display: none !important;
-        }
-
-        .card-header {
-          flex-direction: column;
-          align-items: flex-start;
-          gap: 8px;
-        }
-
-        .feed-header-actions {
-          width: 100%;
-          justify-content: flex-start;
-          gap: 6px;
-        }
-
-        .list,
-        .feed-container {
-          height: 380px;
-          min-height: 380px;
-          max-height: 380px;
-        }
-
-        .notepad-area {
-          height: 280px;
-          min-height: 280px;
-        }
-
-        .task-search-composer {
-          padding: 8px;
-          border-radius: 14px;
-        }
-
-        .search-field-row {
-          min-height: 44px;
-          padding: 0 10px;
-        }
-
-        .search-field-row input[type="text"] {
-          font-size: 0.92rem !important;
-          min-height: 42px;
-        }
-
-        .task-submit-btn {
-          min-height: 42px;
-          font-size: 0.88rem;
-        }
-
-        .primary-btn,
-        .secondary-btn,
-        .danger-btn {
-          font-size: 0.8rem;
-          padding: 6px 10px;
-          height: 36px;
-          min-height: 36px;
-        }
+        body { padding-bottom: 32px; }
+        .app-container-wrapper { padding: 8px 6px 0; }
+        .app { border-radius: 16px; }
+        .header { padding: 16px 14px; gap: 12px; }
+        .header-title-block { flex: 1 1 100%; }
+        h1 { font-size: 1.4rem; }
+        .subtitle { font-size: 0.84rem; }
+        .view-nav-bar { padding: 8px 14px 0; }
+        .view-tab-btn { padding: 8px 12px; font-size: 0.82rem; }
+        .organizer-wrapper, .widgets-wrapper { padding: 16px 14px; }
+        .currency-row { flex-direction: column; align-items: stretch; }
+        .currency-swap-btn { align-self: center; width: 44px; height: 44px; }
+        .quick-links { width: 100%; gap: 8px; }
+        .quick-btn, .lock-toggle-btn, .guide-btn { flex: 1 1 auto; justify-content: center; padding: 8px 10px; font-size: 0.82rem; }
+        .workspace-grid { grid-template-columns: 1fr; padding: 14px 12px 18px; gap: 16px; }
+        .workspace-grid > .column-card:nth-child(3) { grid-column: span 1; }
+        .column-card { padding: 14px; border-radius: 14px; }
+        .card-drag-handle { display: none !important; }
+        .card-header { flex-direction: column; align-items: flex-start; gap: 8px; }
+        .feed-header-actions { width: 100%; justify-content: flex-start; gap: 6px; }
+        .list, .feed-container { height: 380px; min-height: 380px; max-height: 380px; }
+        .notepad-area { height: 280px; min-height: 280px; }
+        .task-search-composer { padding: 8px; border-radius: 14px; }
+        .search-field-row { min-height: 44px; padding: 0 10px; }
+        .search-field-row input[type="text"] { font-size: 0.92rem !important; min-height: 42px; }
+        .task-submit-btn { min-height: 42px; font-size: 0.88rem; }
+        .primary-btn, .secondary-btn, .danger-btn { font-size: 0.8rem; padding: 6px 10px; height: 36px; min-height: 36px; }
       }
     </style>
   </head>
   <body>
-    <main class="app">
-      <header class="header">
-        <div class="header-title-block">
-          <h1>MGT Workspace</h1>
-          <div class="subtitle">Keep track of your priorities, quick notes, and live inbox feed.</div>
-        </div>
-
-        <div class="quick-links">
-          <button id="guideBtn" class="secondary-btn" type="button" title="How to Use Guide">📖 Guide</button>
-          <button id="adminPanelBtn" class="secondary-btn" type="button" style="display: none;" title="Open Admin Panel">⚙️ Admin Panel</button>
-          <button id="lockToggleBtn" class="lock-toggle-btn" type="button" title="Lock/Unlock column reordering">
-            <span id="lockIcon">🔒</span> <span id="lockLabel">Locked</span>
-          </button>
-          <a href="https://gemini.google.com" target="_blank" rel="noopener noreferrer" class="quick-btn">Gemini</a>
-          <a href="https://chatgpt.com" target="_blank" rel="noopener noreferrer" class="quick-btn">ChatGPT</a>
-          <a href="https://mail.google.com" target="_blank" rel="noopener noreferrer" class="quick-btn">Gmail</a>
-          <a href="https://drive.google.com" target="_blank" rel="noopener noreferrer" class="quick-btn">Drive</a>
-        </div>
-      </header>
-
-      <div id="workspaceGrid" class="workspace-grid layout-locked">
-        <!-- 1. Task Planner with Unified Search-Bar Composer -->
-        <section id="card-tasks" class="column-card" draggable="false" data-card-id="tasks">
-          <div class="card-drag-handle" title="Drag to reorder column">
-            <span class="drag-dots"></span>
-          </div>
-
-          <div class="card-header">
-            <span id="plannerTitle" class="card-title">Daily Planner</span>
-            <span id="taskStats" class="stats">0 tasks</span>
-          </div>
-
-          <!-- Search-Bar Style Composer -->
-          <div class="task-search-composer">
-            <div class="search-field-row">
-              <span class="search-field-icon" title="Task description">📝</span>
-              <input id="taskInput" type="text" placeholder="What needs to be done?" maxlength="200" autocomplete="off" />
-            </div>
-            <div class="search-field-row">
-              <span class="search-field-icon" title="Optional Link URL">🔗</span>
-              <input id="taskLinkInput" type="text" placeholder="Paste link here (optional, e.g. https://...)" autocomplete="off" />
-            </div>
-            <button id="addTaskBtn" class="task-submit-btn" type="button">
-              <span>Add Task</span>
-              <span class="btn-shortcut">↵</span>
-            </button>
-          </div>
-
-          <div class="toolbar">
-            <div class="filters" aria-label="Filter tasks">
-              <button class="filter-btn active" data-filter="all" type="button">All</button>
-              <button class="filter-btn" data-filter="active" type="button">Active</button>
-              <button class="filter-btn" data-filter="completed" type="button">Done</button>
-            </div>
-          </div>
-
-          <ul id="taskList" class="list" aria-live="polite"></ul>
-        </section>
-
-        <!-- 2. Auto-saving Scratchpad with Full Document Attachments -->
-        <aside id="card-notes" class="column-card" draggable="false" data-card-id="notes">
-          <div class="card-drag-handle" title="Drag to reorder column">
-            <span class="drag-dots"></span>
-          </div>
-
-          <div class="card-header">
-            <span class="card-title">Quick Scratchpad</span>
-            <span id="noteStatus" class="card-status">Local storage</span>
-          </div>
-
-          <div id="dropZone" class="drop-zone">
-            <textarea
-              id="quickNotes"
-              class="editor-area notepad-area"
-              placeholder="Jot down quick thoughts, links, or drop images, PDFs & Office docs here..."
-            ></textarea>
-
-            <div class="attachment-bar">
-              <input
-                type="file"
-                id="filePicker"
-                accept="image/*,.heic,.heif,.pdf,application/pdf,.doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,.xls,.xlsx,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,.ppt,.pptx,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation"
-                multiple
-                style="display: none;"
-              />
-              <button id="attachBtn" type="button" class="attach-action-btn">
-                <span>📎</span> <span>Attach file</span>
-              </button>
-              <span class="attach-hint">Images, PDFs & Office docs supported</span>
-            </div>
-
-            <div id="attachmentsRail" class="attachments-rail"></div>
-          </div>
-        </aside>
-
-        <!-- 3. Live Gmail Feed -->
-        <section id="card-gmail" class="column-card" draggable="false" data-card-id="gmail">
-          <div class="card-drag-handle" title="Drag to reorder column">
-            <span class="drag-dots"></span>
-          </div>
-
-          <div class="card-header">
-            <span class="card-title">Live Gmail Feed</span>
-            <div class="feed-header-actions">
-              <span id="authStatus" class="card-status">Not connected</span>
-              <button id="authBtn" class="primary-btn" type="button">Connect Gmail</button>
-              <button id="refreshBtn" class="secondary-btn" type="button" style="display: none;">Refresh</button>
-              <button id="signOutBtn" class="danger-btn" type="button" style="display: none;">Sign Out</button>
-            </div>
-          </div>
-
-          <div id="emailFeed" class="feed-container">
-            <div class="empty-feed">Click "Connect Gmail" above to link your account and view recent emails.</div>
-          </div>
-        </section>
+    <!-- Top Global Notification Bar -->
+    <aside id="appNotificationBar" class="app-notification-bar" role="alert">
+      <div class="notification-content">
+        <span class="notification-icon" id="notificationBarIcon">🔔</span>
+        <span class="notification-text" id="notificationBarText">Welcome to MGT Workspace. All updates synchronized.</span>
       </div>
+      <div class="notification-actions">
+        <button id="dismissNotificationBtn" class="notification-btn-dismiss" type="button" aria-label="Dismiss Notification">Dismiss ✕</button>
+      </div>
+    </aside>
 
-      <!-- Shared Activity & Comments Section (Auth Gated) -->
-      <section class="comments-card">
-        <!-- "Who's Online" Presence Status Bar -->
-        <div id="onlineStatusBar" class="online-status-bar" style="display: none;">
-          <span class="online-status-label">🟢 Online:</span>
-          <div id="onlineUsersRail" class="online-users-rail"></div>
+    <div class="app-container-wrapper">
+      <main class="app">
+        <header class="header">
+          <div class="header-title-block">
+            <h1>MGT Workspace</h1>
+            <div class="subtitle">Keep track of your priorities, quick notes, and live inbox feed.</div>
+          </div>
+
+          <div class="quick-links">
+            <button id="guideBtn" class="secondary-btn" type="button" title="How to Use Guide">📖 Guide</button>
+            <button id="adminPanelBtn" class="secondary-btn" type="button" style="display: none;" title="Open Admin Panel">⚙️ Admin Panel</button>
+            <button id="lockToggleBtn" class="lock-toggle-btn" type="button" title="Lock/Unlock column reordering">
+              <span id="lockIcon">🔒</span> <span id="lockLabel">Locked</span>
+            </button>
+            <a href="https://gemini.google.com" target="_blank" rel="noopener noreferrer" class="quick-btn">Gemini</a>
+            <a href="https://chatgpt.com" target="_blank" rel="noopener noreferrer" class="quick-btn">ChatGPT</a>
+            <a href="https://mail.google.com" target="_blank" rel="noopener noreferrer" class="quick-btn">Gmail</a>
+            <a href="https://drive.google.com" target="_blank" rel="noopener noreferrer" class="quick-btn">Drive</a>
+          </div>
+        </header>
+
+        <!-- View Categorizer Tab Bar -->
+        <nav class="view-nav-bar" aria-label="Workspace Views">
+          <button id="tabWorkspaceBtn" class="view-tab-btn active" type="button">
+            <span>📊</span> <span>Workspace Board</span>
+          </button>
+          <button id="tabOrganizerBtn" class="view-tab-btn" type="button">
+            <span>📁</span> <span>Files & Folder Organizer</span>
+          </button>
+          <button id="tabWidgetsBtn" class="view-tab-btn" type="button">
+            <span>🧩</span> <span>Widgets Dashboard</span>
+          </button>
+          <button id="tabConverterBtn" class="view-tab-btn" type="button">
+            <span>💱</span> <span>Currency Converter (PHP / USD)</span>
+          </button>
+        </nav>
+
+        <!-- 1. MAIN WORKSPACE VIEW TAB -->
+        <div id="workspaceViewPanel" class="tab-panel">
+          <div id="workspaceGrid" class="workspace-grid layout-locked">
+            <!-- 1. Task Planner -->
+            <section id="card-tasks" class="column-card" draggable="false" data-card-id="tasks">
+              <div class="card-drag-handle" title="Drag to reorder column">
+                <span class="drag-dots"></span>
+              </div>
+
+              <div class="card-header">
+                <span id="plannerTitle" class="card-title">Daily Planner</span>
+                <span id="taskStats" class="stats">0 tasks</span>
+              </div>
+
+              <div class="task-search-composer">
+                <div class="search-field-row">
+                  <span class="search-field-icon" title="Task description">📝</span>
+                  <input id="taskInput" type="text" placeholder="What needs to be done?" maxlength="200" autocomplete="off" />
+                </div>
+                <div class="search-field-row">
+                  <span class="search-field-icon" title="Optional Link URL">🔗</span>
+                  <input id="taskLinkInput" type="text" placeholder="Paste link here (optional, e.g. https://...)" autocomplete="off" />
+                </div>
+                <button id="addTaskBtn" class="task-submit-btn" type="button">
+                  <span>Add Task</span>
+                  <span class="btn-shortcut">↵</span>
+                </button>
+              </div>
+
+              <div class="toolbar">
+                <div class="filters" aria-label="Filter tasks">
+                  <button class="filter-btn active" data-filter="all" type="button">All</button>
+                  <button class="filter-btn" data-filter="active" type="button">Active</button>
+                  <button class="filter-btn" data-filter="completed" type="button">Done</button>
+                </div>
+              </div>
+
+              <ul id="taskList" class="list" aria-live="polite"></ul>
+            </section>
+
+            <!-- 2. Scratchpad -->
+            <aside id="card-notes" class="column-card" draggable="false" data-card-id="notes">
+              <div class="card-drag-handle" title="Drag to reorder column">
+                <span class="drag-dots"></span>
+              </div>
+
+              <div class="card-header">
+                <span class="card-title">Quick Scratchpad</span>
+                <span id="noteStatus" class="card-status">Local storage</span>
+              </div>
+
+              <div id="dropZone" class="drop-zone">
+                <textarea
+                  id="quickNotes"
+                  class="editor-area notepad-area"
+                  placeholder="Jot down quick thoughts, links, or drop images, PDFs & Office docs here..."
+                ></textarea>
+
+                <div class="attachment-bar">
+                  <input
+                    type="file"
+                    id="filePicker"
+                    accept="image/*,.heic,.heif,.pdf,application/pdf,.doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,.xls,.xlsx,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,.ppt,.pptx,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation"
+                    multiple
+                    style="display: none;"
+                  />
+                  <button id="attachBtn" type="button" class="attach-action-btn">
+                    <span>📎</span> <span>Attach file</span>
+                  </button>
+                  <span class="attach-hint">Images, PDFs & Office docs supported</span>
+                </div>
+
+                <div id="attachmentsRail" class="attachments-rail"></div>
+              </div>
+            </aside>
+
+            <!-- 3. Live Gmail Feed -->
+            <section id="card-gmail" class="column-card" draggable="false" data-card-id="gmail">
+              <div class="card-drag-handle" title="Drag to reorder column">
+                <span class="drag-dots"></span>
+              </div>
+
+              <div class="card-header">
+                <span class="card-title">Live Gmail Feed</span>
+                <div class="feed-header-actions">
+                  <span id="authStatus" class="card-status">Not connected</span>
+                  <button id="authBtn" class="primary-btn" type="button">Connect Gmail</button>
+                  <button id="refreshBtn" class="secondary-btn" type="button" style="display: none;">Refresh</button>
+                  <button id="signOutBtn" class="danger-btn" type="button" style="display: none;">Sign Out</button>
+                </div>
+              </div>
+
+              <div id="emailFeed" class="feed-container">
+                <div class="empty-feed">Click "Connect Gmail" above to link your account and view recent emails.</div>
+              </div>
+            </section>
+          </div>
+
+          <!-- Shared Activity & Comments Section -->
+          <section class="comments-card" style="margin: 0 28px 28px;">
+            <div id="onlineStatusBar" class="online-status-bar" style="display: none;">
+              <span class="online-status-label">🟢 Online:</span>
+              <div id="onlineUsersRail" class="online-users-rail"></div>
+            </div>
+
+            <div class="card-header" style="margin-bottom: 10px;">
+              <span class="card-title">Shared Activity & Comments</span>
+              <span id="commentCountBadge" class="stats"></span>
+            </div>
+
+            <div id="commentsContainer" style="display: none;">
+              <div id="commentsFeed" class="comments-feed"></div>
+              <div id="commentComposerContainer"></div>
+            </div>
+
+            <div id="commentAuthGate">
+              <div class="comment-auth-notice">
+                <span>🔐 Sign in with Google above to view and post comments.</span>
+                <button id="gateSignInBtn" class="primary-btn" type="button">Sign In / Register with Google</button>
+              </div>
+            </div>
+          </section>
         </div>
 
-        <div class="card-header" style="margin-bottom: 10px;">
-          <span class="card-title">Shared Activity & Comments</span>
-          <span id="commentCountBadge" class="stats"></span>
-        </div>
+        <!-- 2. ATTACHMENTS & FOLDER ORGANIZER TAB -->
+        <div id="organizerViewPanel" class="tab-panel hidden">
+          <div class="organizer-wrapper">
+            <div class="organizer-toolbar">
+              <div class="organizer-actions">
+                <input type="text" id="newFolderInput" placeholder="New folder name..." maxlength="30" />
+                <button type="button" id="createFolderBtn" class="primary-btn">➕ Create Folder</button>
+              </div>
+              <span class="stats" id="organizerStats">0 folders • 0 files</span>
+            </div>
 
-        <div id="commentsContainer" style="display: none;">
-          <div id="commentsFeed" class="comments-feed"></div>
-          <div id="commentComposerContainer"></div>
-        </div>
-
-        <div id="commentAuthGate">
-          <div class="comment-auth-notice">
-            <span>🔐 Sign in with Google above to view and post comments.</span>
-            <button id="gateSignInBtn" class="primary-btn" type="button">Sign In / Register with Google</button>
+            <div id="directoryTree" class="directory-tree"></div>
           </div>
         </div>
-      </section>
-    </main>
+
+        <!-- 3. WIDGETS DASHBOARD TAB -->
+        <div id="widgetsViewPanel" class="tab-panel hidden">
+          <div class="widgets-wrapper">
+            <div class="organizer-toolbar">
+              <span class="card-title">⚡ Interactive Modular Widgets</span>
+              <div class="filters">
+                <button id="toggleCalcWidgetBtn" class="filter-btn active" type="button">Calculator</button>
+                <button id="toggleTreeWidgetBtn" class="filter-btn active" type="button">Directory Tree</button>
+                <button id="toggleQuickStatsWidgetBtn" class="filter-btn active" type="button">Quick Summary</button>
+              </div>
+            </div>
+
+            <div class="widgets-grid">
+              <!-- Mini Calculator Widget -->
+              <div id="widgetCalculator" class="widget-box">
+                <div class="widget-header">
+                  <span class="widget-title">🧮 Workspace Calculator</span>
+                  <span class="stats">Live Utility</span>
+                </div>
+                <div id="calcDisplay" class="calc-display">0</div>
+                <div class="calc-keypad">
+                  <button class="calc-btn op" data-calc="C" type="button">C</button>
+                  <button class="calc-btn op" data-calc="DEL" type="button">⌫</button>
+                  <button class="calc-btn op" data-calc="/" type="button">÷</button>
+                  <button class="calc-btn op" data-calc="*" type="button">×</button>
+
+                  <button class="calc-btn" data-calc="7" type="button">7</button>
+                  <button class="calc-btn" data-calc="8" type="button">8</button>
+                  <button class="calc-btn" data-calc="9" type="button">9</button>
+                  <button class="calc-btn op" data-calc="-" type="button">−</button>
+
+                  <button class="calc-btn" data-calc="4" type="button">4</button>
+                  <button class="calc-btn" data-calc="5" type="button">5</button>
+                  <button class="calc-btn" data-calc="6" type="button">6</button>
+                  <button class="calc-btn op" data-calc="+" type="button">+</button>
+
+                  <button class="calc-btn" data-calc="1" type="button">1</button>
+                  <button class="calc-btn" data-calc="2" type="button">2</button>
+                  <button class="calc-btn" data-calc="3" type="button">3</button>
+                  <button class="calc-btn op" data-calc="=" type="button" style="grid-row: span 2; height: 100%;">=</button>
+
+                  <button class="calc-btn" data-calc="0" type="button" style="grid-column: span 2;">0</button>
+                  <button class="calc-btn" data-calc="." type="button">.</button>
+                </div>
+              </div>
+
+              <!-- Directory Overview Widget -->
+              <div id="widgetFileTree" class="widget-box">
+                <div class="widget-header">
+                  <span class="widget-title">🌲 Fast File Tree</span>
+                  <span class="stats" id="widgetTreeCount">0 Files</span>
+                </div>
+                <div id="widgetDirectoryList" style="display: flex; flex-direction: column; gap: 8px; max-height: 280px; overflow-y: auto;"></div>
+              </div>
+
+              <!-- Workspace Analytics Widget -->
+              <div id="widgetQuickStats" class="widget-box">
+                <div class="widget-header">
+                  <span class="widget-title">📈 Workspace Performance</span>
+                  <span class="stats">Live Metric</span>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 10px; font-size: 0.9rem;">
+                  <div style="display:flex; justify-content:space-between; background:rgba(8,18,33,0.6); padding:8px 12px; border-radius:8px;">
+                    <span>Active Priorities:</span>
+                    <strong id="statActiveTasks" style="color:#bae6fd;">0</strong>
+                  </div>
+                  <div style="display:flex; justify-content:space-between; background:rgba(8,18,33,0.6); padding:8px 12px; border-radius:8px;">
+                    <span>Completed Tasks:</span>
+                    <strong id="statCompletedTasks" style="color:#34d399;">0</strong>
+                  </div>
+                  <div style="display:flex; justify-content:space-between; background:rgba(8,18,33,0.6); padding:8px 12px; border-radius:8px;">
+                    <span>Total Uploaded Files:</span>
+                    <strong id="statTotalAttachments" style="color:#fcd34d;">0</strong>
+                  </div>
+                  <div style="display:flex; justify-content:space-between; background:rgba(8,18,33,0.6); padding:8px 12px; border-radius:8px;">
+                    <span>Organized Folders:</span>
+                    <strong id="statTotalFolders" style="color:#38bdf8;">0</strong>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. CURRENCY CONVERTER CATEGORY TAB -->
+        <div id="currencyViewPanel" class="tab-panel hidden">
+          <div class="currency-panel-wrapper">
+            <section class="currency-card">
+              <div class="currency-card-header">
+                <span class="currency-card-title">💱 PHP ⇄ USD Currency Converter</span>
+                <span class="card-status saved">Live Calculation</span>
+              </div>
+
+              <div class="currency-form">
+                <div class="currency-row">
+                  <div class="currency-input-group">
+                    <label for="currencyAmount">Amount</label>
+                    <input type="number" id="currencyAmount" value="1000" min="0" step="any" placeholder="Enter amount..." />
+                  </div>
+                  <div class="currency-input-group">
+                    <label for="currencyFrom">From</label>
+                    <select id="currencyFrom">
+                      <option value="PHP" selected>PHP - Philippine Peso (₱)</option>
+                      <option value="USD">USD - US Dollar ($)</option>
+                    </select>
+                  </div>
+                  <button type="button" id="currencySwapBtn" class="currency-swap-btn" title="Swap Currencies">⇄</button>
+                  <div class="currency-input-group">
+                    <label for="currencyTo">To</label>
+                    <select id="currencyTo">
+                      <option value="PHP">PHP - Philippine Peso (₱)</option>
+                      <option value="USD" selected>USD - US Dollar ($)</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="currency-rate-info">
+                  <span>Exchange Rate Base: <strong>1 USD = <span id="currentRateDisplay">58.00</span> PHP</strong></span>
+                  <div class="rate-edit-row">
+                    <label for="customRateInput">Custom Rate (₱):</label>
+                    <input type="number" id="customRateInput" class="rate-edit-input" value="58.00" step="0.01" min="1" />
+                  </div>
+                </div>
+
+                <div class="currency-result-box">
+                  <span class="currency-result-label" id="conversionDirectionLabel">PHP to USD Conversion</span>
+                  <span class="currency-result-value" id="conversionOutput">$17.24 USD</span>
+                </div>
+              </div>
+            </section>
+          </div>
+        </div>
+      </main>
+    </div>
 
     <!-- Welcome Splash Modal -->
     <div id="welcomeModalBackdrop" class="general-modal-backdrop">
@@ -1723,12 +2274,7 @@
           <button id="welcomeModalClose" class="general-modal-close" type="button">&times;</button>
         </div>
         <div class="general-modal-body">
-          <p>Your all-in-one executive workspace for managing daily priorities, storing quick notes, reviewing live Gmail messages, and collaborating across desktop and mobile devices.</p>
-          <h3>Key Features:</h3>
-          <p>• <strong>Smart Task Planner:</strong> Add tasks and attach clickable web links.<br>
-             • <strong>Auto-Saving Scratchpad:</strong> Jot down ideas and attach Images, PDFs, and Office documents.<br>
-             • <strong>Cloud Synchronization:</strong> All your notes and tasks sync automatically via Google Drive AppData.<br>
-             • <strong>Live Activity & DMs:</strong> Sign in with Google to view inbox messages, see who's online, send direct messages, and chat with teammates.</p>
+          <p>Your all-in-one executive workspace for managing daily priorities, storing quick notes, reviewing live Gmail messages, and organizing attachments with modular productivity widgets.</p>
           <div style="margin-top: 10px; display: flex; justify-content: space-between; align-items: center;">
             <button id="welcomeSignInBtn" class="secondary-btn" type="button">Sign In / Register with Google</button>
             <button id="welcomeBeginBtn" class="primary-btn" type="button">Okay / Let's Begin</button>
@@ -1737,26 +2283,20 @@
       </div>
     </div>
 
-    <!-- How to Use Tutorial Modal -->
+    <!-- Guide Modal -->
     <div id="tutorialModalBackdrop" class="general-modal-backdrop">
       <div class="general-modal">
         <div class="general-modal-header">
-          <span class="general-modal-title">📖 MGT Workspace Guide & Tutorial</span>
+          <span class="general-modal-title">📖 MGT Workspace Guide</span>
           <button id="tutorialModalClose" class="general-modal-close" type="button">&times;</button>
         </div>
         <div class="general-modal-body">
-          <h3>1. Connecting & Live Feed</h3>
-          <p>Click "Sign In / Register with Google" or "Connect Gmail" in the top-right corner to authenticate your Google account. This loads your recent inbox messages and unlocks the Shared Activity & Comments section.</p>
-          
-          <h3>2. Tasks & Scratchpad</h3>
-          <p>Use the unified task composer to create tasks with or without URLs. Drag-and-drop or use the paperclip icon to upload images, PDFs, Word, Excel, or PowerPoint files.</p>
-
-          <h3>3. Who's Online & Direct Messages</h3>
-          <p>See active workspace teammates in the online presence bar. Click on any teammate's name to open an offline-persisted Direct Message (PM) chat window.</p>
-
-          <h3>4. Layout Lock & Admin Controls</h3>
-          <p>Toggle the 🔒/🔓 Lock button in the header to switch between a fixed layout and an unlocked reorderable workspace. If signed in as an admin, use the Admin Panel to manage users and nicknames.</p>
-
+          <h3>1. Workspace & Gmail</h3>
+          <p>Sign in with Google to review emails and auto-sync scratchpad and daily priorities.</p>
+          <h3>2. Folders & File Organizer</h3>
+          <p>Create directories and allocate attachments across custom folders directly inside the Organizer tab.</p>
+          <h3>3. Interactive Widgets</h3>
+          <p>Use the modular calculator and file tree visualizer on the Widgets dashboard.</p>
           <div style="margin-top: 10px; display: flex; justify-content: flex-end;">
             <button id="tutorialGotItBtn" class="primary-btn" type="button">Got It</button>
           </div>
@@ -1789,7 +2329,7 @@
       </div>
     </div>
 
-    <!-- Direct Message (DM) Modal -->
+    <!-- Direct Message Modal -->
     <div id="dmModalBackdrop" class="dm-modal-backdrop">
       <div class="dm-modal">
         <div class="dm-modal-header">
@@ -1810,16 +2350,13 @@
       <button id="toastClose" class="toast-close" type="button">&times;</button>
     </div>
 
-    <!-- Lightbox Modal for Attachment Viewing -->
+    <!-- Lightbox Modal -->
     <div id="lightboxModal" class="lightbox-modal">
       <button id="lightboxClose" class="lightbox-close" type="button">&times;</button>
       <img id="lightboxImg" class="lightbox-img" src="" alt="Expanded Preview" />
     </div>
 
     <script>
-      // ==========================================
-      // CONSTANTS & CLOUD STORAGE CONFIGURATION
-      // ==========================================
       const CLIENT_ID = '912308604808-p1nkq6drca0mvt60ipp9u1bpj9bh5iud.apps.googleusercontent.com';
       const OAUTH_SCOPES = 'https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/drive.appdata';
       const CLOUD_SYNC_FILENAME = 'mgt_workspace_data.json';
@@ -1833,11 +2370,13 @@
       const LOCAL_TASKS_KEY = 'mgt_local_tasks';
       const LOCAL_NOTES_KEY = 'mgt_local_notes';
       const LOCAL_ATTACHMENTS_KEY = 'mgt_local_attachments';
+      const LOCAL_FOLDERS_KEY = 'mgt_local_folders';
       const LOCAL_COMMENTS_KEY = 'mgt_local_comments';
       const LOCAL_DMS_KEY = 'mgt_local_dms';
       const LOCAL_ADMINS_KEY = 'mgt_admin_list';
       const LOCAL_NICKNAMES_KEY = 'mgt_user_nicknames';
       const LOCAL_PRESENCE_KEY = 'mgt_user_presence';
+      const LOCAL_USD_RATE_KEY = 'mgt_usd_php_rate';
 
       let tokenClient = null;
       let isGisReady = false;
@@ -1853,17 +2392,68 @@
 
       let isLayoutLocked = localStorage.getItem(LAYOUT_LOCK_KEY) !== 'false';
       let pendingRetryQueue = [];
-      const blobUrlCache = new Map();
-      let activeDmRecipient = null; // Email of user currently chatted with in DM modal
-      let lastSeenDmCount = 0; // Track unread notifications
+      let blobUrlCache = new Map();
+      let activeDmRecipient = null; 
+      let lastSeenDmCount = 0; 
+
+      // Calculator internal state
+      let calcExpression = '0';
 
       // DOM Elements
+      const appNotificationBar = document.getElementById('appNotificationBar');
+      const notificationBarIcon = document.getElementById('notificationBarIcon');
+      const notificationBarText = document.getElementById('notificationBarText');
+      const dismissNotificationBtn = document.getElementById('dismissNotificationBtn');
+
       const workspaceGrid = document.getElementById('workspaceGrid');
       const lockToggleBtn = document.getElementById('lockToggleBtn');
       const lockIcon = document.getElementById('lockIcon');
       const lockLabel = document.getElementById('lockLabel');
       const adminPanelBtn = document.getElementById('adminPanelBtn');
       const guideBtn = document.getElementById('guideBtn');
+
+      // Categorizer View Tabs
+      const tabWorkspaceBtn = document.getElementById('tabWorkspaceBtn');
+      const tabOrganizerBtn = document.getElementById('tabOrganizerBtn');
+      const tabWidgetsBtn = document.getElementById('tabWidgetsBtn');
+      const tabConverterBtn = document.getElementById('tabConverterBtn');
+
+      const workspaceViewPanel = document.getElementById('workspaceViewPanel');
+      const organizerViewPanel = document.getElementById('organizerViewPanel');
+      const widgetsViewPanel = document.getElementById('widgetsViewPanel');
+      const currencyViewPanel = document.getElementById('currencyViewPanel');
+
+      // Organizer elements
+      const newFolderInput = document.getElementById('newFolderInput');
+      const createFolderBtn = document.getElementById('createFolderBtn');
+      const directoryTree = document.getElementById('directoryTree');
+      const organizerStats = document.getElementById('organizerStats');
+
+      // Widget elements
+      const calcDisplay = document.getElementById('calcDisplay');
+      const widgetDirectoryList = document.getElementById('widgetDirectoryList');
+      const widgetTreeCount = document.getElementById('widgetTreeCount');
+      const statActiveTasks = document.getElementById('statActiveTasks');
+      const statCompletedTasks = document.getElementById('statCompletedTasks');
+      const statTotalAttachments = document.getElementById('statTotalAttachments');
+      const statTotalFolders = document.getElementById('statTotalFolders');
+
+      const toggleCalcWidgetBtn = document.getElementById('toggleCalcWidgetBtn');
+      const toggleTreeWidgetBtn = document.getElementById('toggleTreeWidgetBtn');
+      const toggleQuickStatsWidgetBtn = document.getElementById('toggleQuickStatsWidgetBtn');
+      const widgetCalculator = document.getElementById('widgetCalculator');
+      const widgetFileTree = document.getElementById('widgetFileTree');
+      const widgetQuickStats = document.getElementById('widgetQuickStats');
+
+      // Currency Converter Elements
+      const currencyAmount = document.getElementById('currencyAmount');
+      const currencyFrom = document.getElementById('currencyFrom');
+      const currencyTo = document.getElementById('currencyTo');
+      const currencySwapBtn = document.getElementById('currencySwapBtn');
+      const customRateInput = document.getElementById('customRateInput');
+      const currentRateDisplay = document.getElementById('currentRateDisplay');
+      const conversionDirectionLabel = document.getElementById('conversionDirectionLabel');
+      const conversionOutput = document.getElementById('conversionOutput');
 
       const authBtn = document.getElementById('authBtn');
       const refreshBtn = document.getElementById('refreshBtn');
@@ -1895,7 +2485,7 @@
       const onlineUsersRail = document.getElementById('onlineUsersRail');
       const gateSignInBtn = document.getElementById('gateSignInBtn');
 
-      // Modals DOM Elements
+      // Modals
       const welcomeModalBackdrop = document.getElementById('welcomeModalBackdrop');
       const welcomeModalClose = document.getElementById('welcomeModalClose');
       const welcomeBeginBtn = document.getElementById('welcomeBeginBtn');
@@ -1927,62 +2517,329 @@
       const lightboxImg = document.getElementById('lightboxImg');
       const lightboxClose = document.getElementById('lightboxClose');
 
-      // State Hydration from local cache
+      // Local State Hydration
       let tasks = [];
-      try {
-        tasks = JSON.parse(localStorage.getItem(LOCAL_TASKS_KEY)) || [
-          { id: crypto.randomUUID(), text: 'Plan your top 3 priorities', link: null, completed: false, createdAt: new Date().toISOString() },
-          { id: crypto.randomUUID(), text: 'Review inbox feed and clean emails', link: null, completed: false, createdAt: new Date().toISOString() }
-        ];
-      } catch {
-        tasks = [{ id: crypto.randomUUID(), text: 'Plan your top 3 priorities', link: null, completed: false, createdAt: new Date().toISOString() }];
-      }
+      try { tasks = JSON.parse(localStorage.getItem(LOCAL_TASKS_KEY)) || []; } catch { tasks = []; }
 
       let attachments = [];
-      try {
-        attachments = JSON.parse(localStorage.getItem(LOCAL_ATTACHMENTS_KEY)) || [];
-      } catch {
-        attachments = [];
-      }
+      try { attachments = JSON.parse(localStorage.getItem(LOCAL_ATTACHMENTS_KEY)) || []; } catch { attachments = []; }
+
+      let folders = [];
+      try { folders = JSON.parse(localStorage.getItem(LOCAL_FOLDERS_KEY)) || ['General', 'Documents', 'Images']; } catch { folders = ['General', 'Documents', 'Images']; }
 
       let comments = [];
-      try {
-        comments = JSON.parse(localStorage.getItem(LOCAL_COMMENTS_KEY)) || [];
-      } catch {
-        comments = [];
-      }
+      try { comments = JSON.parse(localStorage.getItem(LOCAL_COMMENTS_KEY)) || []; } catch { comments = []; }
 
       let directMessages = [];
       try {
         directMessages = JSON.parse(localStorage.getItem(LOCAL_DMS_KEY)) || [];
         lastSeenDmCount = directMessages.length;
-      } catch {
-        directMessages = [];
-      }
+      } catch { directMessages = []; }
 
       let presenceMap = {};
-      try {
-        presenceMap = JSON.parse(localStorage.getItem(LOCAL_PRESENCE_KEY)) || {};
-      } catch {
-        presenceMap = {};
-      }
+      try { presenceMap = JSON.parse(localStorage.getItem(LOCAL_PRESENCE_KEY)) || {}; } catch { presenceMap = {}; }
 
       let admins = [];
-      try {
-        admins = JSON.parse(localStorage.getItem(LOCAL_ADMINS_KEY)) || [INITIAL_OWNER_EMAIL];
-      } catch {
-        admins = [INITIAL_OWNER_EMAIL];
-      }
+      try { admins = JSON.parse(localStorage.getItem(LOCAL_ADMINS_KEY)) || [INITIAL_OWNER_EMAIL]; } catch { admins = [INITIAL_OWNER_EMAIL]; }
 
       let nicknames = {};
-      try {
-        nicknames = JSON.parse(localStorage.getItem(LOCAL_NICKNAMES_KEY)) || {};
-      } catch {
-        nicknames = {};
-      }
+      try { nicknames = JSON.parse(localStorage.getItem(LOCAL_NICKNAMES_KEY)) || {}; } catch { nicknames = {}; }
 
       quickNotes.value = localStorage.getItem(LOCAL_NOTES_KEY) || '';
       let currentFilter = 'all';
+
+      // ==========================================
+      // NOTIFICATION BAR ENGINE
+      // ==========================================
+      function showNotification(message, icon = '🔔', autoDismissTimeout = 0) {
+        notificationBarText.textContent = message;
+        notificationBarIcon.textContent = icon;
+        appNotificationBar.classList.add('active');
+
+        if (autoDismissTimeout > 0) {
+          setTimeout(() => { hideNotification(); }, autoDismissTimeout);
+        }
+      }
+
+      function hideNotification() {
+        appNotificationBar.classList.remove('active');
+      }
+
+      dismissNotificationBtn.addEventListener('click', hideNotification);
+
+      // ==========================================
+      // CATEGORIZER VIEW NAVIGATION
+      // ==========================================
+      function switchView(viewName) {
+        [tabWorkspaceBtn, tabOrganizerBtn, tabWidgetsBtn, tabConverterBtn].forEach(b => b.classList.remove('active'));
+        [workspaceViewPanel, organizerViewPanel, widgetsViewPanel, currencyViewPanel].forEach(p => p.classList.add('hidden'));
+
+        if (viewName === 'organizer') {
+          tabOrganizerBtn.classList.add('active');
+          organizerViewPanel.classList.remove('hidden');
+          renderOrganizer();
+        } else if (viewName === 'widgets') {
+          tabWidgetsBtn.classList.add('active');
+          widgetsViewPanel.classList.remove('hidden');
+          renderWidgets();
+        } else if (viewName === 'converter') {
+          tabConverterBtn.classList.add('active');
+          currencyViewPanel.classList.remove('hidden');
+          calculateCurrency();
+        } else {
+          tabWorkspaceBtn.classList.add('active');
+          workspaceViewPanel.classList.remove('hidden');
+        }
+      }
+
+      tabWorkspaceBtn.addEventListener('click', () => switchView('workspace'));
+      tabOrganizerBtn.addEventListener('click', () => switchView('organizer'));
+      tabWidgetsBtn.addEventListener('click', () => switchView('widgets'));
+      tabConverterBtn.addEventListener('click', () => switchView('converter'));
+
+      // ==========================================
+      // ATTACHMENTS & FOLDER ORGANIZER ENGINE
+      // ==========================================
+      createFolderBtn.addEventListener('click', () => {
+        const folderName = newFolderInput.value.trim();
+        if (!folderName) return;
+        if (folders.includes(folderName)) {
+          alert('A folder with that name already exists.');
+          return;
+        }
+        folders.push(folderName);
+        localStorage.setItem(LOCAL_FOLDERS_KEY, JSON.stringify(folders));
+        newFolderInput.value = '';
+        renderOrganizer();
+        renderWidgets();
+        triggerBackgroundSync();
+        showNotification(`Folder "${folderName}" created.`, '📁', 3000);
+      });
+
+      function renderOrganizer() {
+        directoryTree.innerHTML = '';
+        organizerStats.textContent = `${folders.length} folders • ${attachments.length} files`;
+
+        folders.forEach(folder => {
+          const folderFiles = attachments.filter(a => (a.folder || 'General') === folder);
+
+          const card = document.createElement('div');
+          card.className = 'folder-card';
+
+          const header = document.createElement('div');
+          header.className = 'folder-header';
+
+          const titleBox = document.createElement('div');
+          titleBox.className = 'folder-title-box';
+          titleBox.innerHTML = `<span>📁</span> <span>${escapeHtml(folder)}</span> <span class="stats">(${folderFiles.length})</span>`;
+
+          header.appendChild(titleBox);
+
+          if (folder !== 'General') {
+            const deleteFolderBtn = document.createElement('button');
+            deleteFolderBtn.type = 'button';
+            deleteFolderBtn.className = 'comment-delete-btn';
+            deleteFolderBtn.textContent = 'Remove Folder';
+            deleteFolderBtn.addEventListener('click', () => {
+              if (confirm(`Remove folder "${folder}"? Contained files will move to "General".`)) {
+                attachments.forEach(a => { if (a.folder === folder) a.folder = 'General'; });
+                folders = folders.filter(f => f !== folder);
+                localStorage.setItem(LOCAL_FOLDERS_KEY, JSON.stringify(folders));
+                localStorage.setItem(LOCAL_ATTACHMENTS_KEY, JSON.stringify(attachments));
+                renderOrganizer();
+                renderWidgets();
+                triggerBackgroundSync();
+              }
+            });
+            header.appendChild(deleteFolderBtn);
+          }
+
+          card.appendChild(header);
+
+          const content = document.createElement('div');
+          content.className = 'folder-contents';
+
+          if (folderFiles.length === 0) {
+            const empty = document.createElement('div');
+            empty.className = 'empty-feed';
+            empty.style.padding = '8px 0';
+            empty.textContent = 'No files in this folder.';
+            content.appendChild(empty);
+          } else {
+            folderFiles.forEach(file => {
+              const fileRow = document.createElement('div');
+              fileRow.className = 'folder-file-item';
+
+              const meta = getFileCategory(file.name, file.type);
+              const info = document.createElement('div');
+              info.style.overflow = 'hidden';
+              info.style.textOverflow = 'ellipsis';
+              info.style.whiteSpace = 'nowrap';
+              info.innerHTML = `<span class="doc-tag ${meta.class}" style="margin-right:6px;">${meta.tag}</span> <span style="font-size:0.85rem;">${escapeHtml(file.name)}</span>`;
+
+              const moveSelect = document.createElement('select');
+              folders.forEach(f => {
+                const opt = document.createElement('option');
+                opt.value = f;
+                opt.textContent = `Move to ${f}`;
+                if (f === (file.folder || 'General')) opt.selected = true;
+                moveSelect.appendChild(opt);
+              });
+
+              moveSelect.addEventListener('change', () => {
+                file.folder = moveSelect.value;
+                localStorage.setItem(LOCAL_ATTACHMENTS_KEY, JSON.stringify(attachments));
+                renderOrganizer();
+                renderWidgets();
+                triggerBackgroundSync();
+              });
+
+              fileRow.appendChild(info);
+              fileRow.appendChild(moveSelect);
+              content.appendChild(fileRow);
+            });
+          }
+
+          card.appendChild(content);
+          directoryTree.appendChild(card);
+        });
+      }
+
+      // ==========================================
+      // MODULAR WIDGETS DASHBOARD
+      // ==========================================
+      toggleCalcWidgetBtn.addEventListener('click', () => {
+        toggleCalcWidgetBtn.classList.toggle('active');
+        widgetCalculator.classList.toggle('hidden', !toggleCalcWidgetBtn.classList.contains('active'));
+      });
+
+      toggleTreeWidgetBtn.addEventListener('click', () => {
+        toggleTreeWidgetBtn.classList.toggle('active');
+        widgetFileTree.classList.toggle('hidden', !toggleTreeWidgetBtn.classList.contains('active'));
+      });
+
+      toggleQuickStatsWidgetBtn.addEventListener('click', () => {
+        toggleQuickStatsWidgetBtn.classList.toggle('active');
+        widgetQuickStats.classList.toggle('hidden', !toggleQuickStatsWidgetBtn.classList.contains('active'));
+      });
+
+      // Calculator Buttons Event
+      document.querySelectorAll('.calc-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const action = btn.dataset.calc;
+          if (action === 'C') {
+            calcExpression = '0';
+          } else if (action === 'DEL') {
+            calcExpression = calcExpression.length > 1 ? calcExpression.slice(0, -1) : '0';
+          } else if (action === '=') {
+            try {
+              // Sanitize math string with strict numbers/operators
+              const sanitized = calcExpression.replace(/×/g, '*').replace(/÷/g, '/').replace(/−/g, '-');
+              if (/^[0-9+\-*/. ]+$/.test(sanitized)) {
+                calcExpression = String(Function(`'use strict'; return (${sanitized})`)());
+              } else {
+                calcExpression = 'Error';
+              }
+            } catch {
+              calcExpression = 'Error';
+            }
+          } else {
+            if (calcExpression === '0' || calcExpression === 'Error') {
+              calcExpression = action;
+            } else {
+              calcExpression += action;
+            }
+          }
+          calcDisplay.textContent = calcExpression;
+        });
+      });
+
+      function renderWidgets() {
+        // Fast Tree Widget
+        widgetDirectoryList.innerHTML = '';
+        widgetTreeCount.textContent = `${attachments.length} Files`;
+
+        folders.forEach(folder => {
+          const folderFiles = attachments.filter(a => (a.folder || 'General') === folder);
+          const fItem = document.createElement('div');
+          fItem.style.background = 'rgba(8,18,33,0.6)';
+          fItem.style.padding = '8px 12px';
+          fItem.style.borderRadius = '8px';
+          fItem.style.fontSize = '0.82rem';
+
+          let filesHtml = folderFiles.map(f => `<div style="padding-left:14px; color:#93c5fd;">📄 ${escapeHtml(f.name)}</div>`).join('');
+          if (!filesHtml) filesHtml = '<div style="padding-left:14px; color:#64748b;">(empty)</div>';
+
+          fItem.innerHTML = `<strong style="color:#bae6fd;">📁 ${escapeHtml(folder)}</strong>${filesHtml}`;
+          widgetDirectoryList.appendChild(fItem);
+        });
+
+        // Quick Stats Widget
+        const activeCount = tasks.filter(t => !t.completed).length;
+        const compCount = tasks.filter(t => t.completed).length;
+        statActiveTasks.textContent = activeCount;
+        statCompletedTasks.textContent = compCount;
+        statTotalAttachments.textContent = attachments.length;
+        statTotalFolders.textContent = folders.length;
+      }
+
+      // ==========================================
+      // CURRENCY CONVERTER LOGIC (PHP <-> USD)
+      // ==========================================
+      let usdPhpRate = parseFloat(localStorage.getItem(LOCAL_USD_RATE_KEY)) || 58.00;
+      customRateInput.value = usdPhpRate.toFixed(2);
+      currentRateDisplay.textContent = usdPhpRate.toFixed(2);
+
+      function calculateCurrency() {
+        const amount = parseFloat(currencyAmount.value) || 0;
+        const from = currencyFrom.value;
+        const to = currencyTo.value;
+        const rate = parseFloat(customRateInput.value) || 58.00;
+
+        currentRateDisplay.textContent = rate.toFixed(2);
+        localStorage.setItem(LOCAL_USD_RATE_KEY, String(rate));
+
+        if (from === to) {
+          const sym = from === 'USD' ? '$' : '₱';
+          conversionDirectionLabel.textContent = `${from} to ${to}`;
+          conversionOutput.textContent = `${sym}${amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${to}`;
+          return;
+        }
+
+        if (from === 'USD' && to === 'PHP') {
+          const converted = amount * rate;
+          conversionDirectionLabel.textContent = `USD to PHP Conversion (Rate: 1 USD = ₱${rate.toFixed(2)})`;
+          conversionOutput.textContent = `₱${converted.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} PHP`;
+        } else if (from === 'PHP' && to === 'USD') {
+          const converted = rate > 0 ? amount / rate : 0;
+          conversionDirectionLabel.textContent = `PHP to USD Conversion (Rate: 1 USD = ₱${rate.toFixed(2)})`;
+          conversionOutput.textContent = `$${converted.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD`;
+        }
+      }
+
+      currencyAmount.addEventListener('input', calculateCurrency);
+      customRateInput.addEventListener('input', calculateCurrency);
+
+      currencyFrom.addEventListener('change', () => {
+        if (currencyFrom.value === currencyTo.value) {
+          currencyTo.value = currencyFrom.value === 'PHP' ? 'USD' : 'PHP';
+        }
+        calculateCurrency();
+      });
+
+      currencyTo.addEventListener('change', () => {
+        if (currencyTo.value === currencyFrom.value) {
+          currencyFrom.value = currencyTo.value === 'PHP' ? 'USD' : 'PHP';
+        }
+        calculateCurrency();
+      });
+
+      currencySwapBtn.addEventListener('click', () => {
+        const temp = currencyFrom.value;
+        currencyFrom.value = currencyTo.value;
+        currencyTo.value = temp;
+        calculateCurrency();
+      });
 
       // ==========================================
       // SIGN IN / REGISTER TRIGGERS
@@ -2001,31 +2858,23 @@
         triggerSignIn();
       });
 
-      // ==========================================
-      // TOAST NOTIFICATIONS & UNREAD COUNTS
-      // ==========================================
       function showToast(message) {
         toastText.textContent = message;
         toastBanner.classList.add('active');
-        setTimeout(() => {
-          toastBanner.classList.remove('active');
-        }, 5000);
+        setTimeout(() => { toastBanner.classList.remove('active'); }, 5000);
       }
 
-      toastClose.addEventListener('click', () => {
-        toastBanner.classList.remove('active');
-      });
+      toastClose.addEventListener('click', () => { toastBanner.classList.remove('active'); });
 
       function checkNewDmNotifications(newMessages) {
         if (!currentUserEmail) return;
         const myEmail = currentUserEmail.toLowerCase();
-        
-        // Count messages addressed to me
         const incoming = newMessages.filter(m => m.recipient === myEmail);
         if (incoming.length > lastSeenDmCount) {
           const latest = incoming[incoming.length - 1];
           const senderName = getDisplayName(latest.sender);
           showToast(`💬 New direct message from ${senderName}`);
+          showNotification(`New direct message received from ${senderName}`, '💬');
         }
         lastSeenDmCount = incoming.length;
       }
@@ -2087,7 +2936,6 @@
             nameSpan.textContent = email === myEmail ? `${displayName} (You)` : displayName;
             pill.appendChild(nameSpan);
 
-            // Unread badge calculation for this user
             const unreadCount = directMessages.filter(m => m.sender === email && m.recipient === myEmail && !m.read).length;
             if (unreadCount > 0) {
               const badge = document.createElement('span');
@@ -2099,7 +2947,6 @@
             if (email !== myEmail) {
               pill.title = `Click to message ${displayName}`;
               pill.addEventListener('click', () => {
-                // Mark messages from this user as read
                 directMessages.forEach(m => {
                   if (m.sender === email && m.recipient === myEmail) m.read = true;
                 });
@@ -2123,7 +2970,7 @@
       }
 
       // ==========================================
-      // OFFLINE DIRECT MESSAGING (PM) SYSTEM
+      // DIRECT MESSAGING
       // ==========================================
       function openDmModal(recipientEmail, recipientName) {
         activeDmRecipient = recipientEmail.toLowerCase();
@@ -2268,14 +3115,9 @@
         adminModalBackdrop.classList.add('active');
       });
 
-      adminModalClose.addEventListener('click', () => {
-        adminModalBackdrop.classList.remove('active');
-      });
-
+      adminModalClose.addEventListener('click', () => { adminModalBackdrop.classList.remove('active'); });
       adminModalBackdrop.addEventListener('click', (e) => {
-        if (e.target === adminModalBackdrop) {
-          adminModalBackdrop.classList.remove('active');
-        }
+        if (e.target === adminModalBackdrop) adminModalBackdrop.classList.remove('active');
       });
 
       addAdminBtn.addEventListener('click', () => {
@@ -2376,11 +3218,7 @@
 
           input.addEventListener('input', () => {
             const val = input.value.trim();
-            if (val) {
-              nicknames[email] = val;
-            } else {
-              delete nicknames[email];
-            }
+            if (val) { nicknames[email] = val; } else { delete nicknames[email]; }
             localStorage.setItem(LOCAL_NICKNAMES_KEY, JSON.stringify(nicknames));
             renderComments();
             renderOnlineUsers();
@@ -2420,10 +3258,9 @@
       });
 
       // ==========================================
-      // 401 EXPIRY INTERCEPTOR & SESSION MANAGEMENT
+      // 401 EXPIRY & SESSION MANAGEMENT
       // ==========================================
       function handle401Error(retryAction) {
-        console.warn('HTTP 401 (Token Expired) detected. Queuing request and initiating renewal...');
         if (typeof retryAction === 'function') {
           pendingRetryQueue.push(retryAction);
         }
@@ -2467,15 +3304,11 @@
       }
 
       noteStatus.addEventListener('click', () => {
-        if (noteStatus.classList.contains('clickable')) {
-          triggerInteractiveReconnect();
-        }
+        if (noteStatus.classList.contains('clickable')) triggerInteractiveReconnect();
       });
 
       authStatus.addEventListener('click', () => {
-        if (authStatus.classList.contains('clickable')) {
-          triggerInteractiveReconnect();
-        }
+        if (authStatus.classList.contains('clickable')) triggerInteractiveReconnect();
       });
 
       function silentlyRenewToken() {
@@ -2484,19 +3317,15 @@
         try {
           tokenClient.requestAccessToken({ prompt: '' });
         } catch (err) {
-          console.warn('Silent token renewal failed:', err);
           isRefreshingToken = false;
           setSessionExpiredUI();
         }
       }
 
-      // URL Formatting Helpers
       function sanitizeUrl(rawUrl) {
         let url = (rawUrl || '').trim();
         if (!url) return '';
-        if (!/^https?:\/\//i.test(url)) {
-          url = 'https://' + url;
-        }
+        if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
         return url;
       }
 
@@ -2516,9 +3345,6 @@
         }
       }
 
-      // ==========================================
-      // LIGHTBOX CONTROLS
-      // ==========================================
       function openLightbox(url) {
         lightboxImg.src = url;
         lightboxModal.classList.add('active');
@@ -2536,18 +3362,13 @@
         }
       });
 
-      // ==========================================
-      // DRAG & DROP COLUMN REORDERING (DESKTOP)
-      // ==========================================
       let draggedCard = null;
 
       function configureResponsiveDraggable() {
         const isMobile = window.innerWidth <= 768;
         const canDrag = !isLayoutLocked && !isMobile;
         const cards = document.querySelectorAll('.column-card');
-        cards.forEach(card => {
-          card.setAttribute('draggable', canDrag ? 'true' : 'false');
-        });
+        cards.forEach(card => card.setAttribute('draggable', canDrag ? 'true' : 'false'));
       }
 
       function initDragAndDrop() {
@@ -2564,7 +3385,7 @@
               return;
             }
 
-            if (['INPUT', 'TEXTAREA', 'BUTTON', 'A'].includes(e.target.tagName)) {
+            if (['INPUT', 'TEXTAREA', 'BUTTON', 'A', 'SELECT'].includes(e.target.tagName)) {
               e.preventDefault();
               return;
             }
@@ -2588,14 +3409,10 @@
             if (isLayoutLocked || window.innerWidth <= 768) return;
             e.preventDefault();
             e.dataTransfer.dropEffect = 'move';
-            if (draggedCard && draggedCard !== card) {
-              card.classList.add('drag-over');
-            }
+            if (draggedCard && draggedCard !== card) card.classList.add('drag-over');
           });
 
-          card.addEventListener('dragleave', () => {
-            card.classList.remove('drag-over');
-          });
+          card.addEventListener('dragleave', () => card.classList.remove('drag-over'));
 
           card.addEventListener('drop', (e) => {
             if (isLayoutLocked || window.innerWidth <= 768) return;
@@ -2630,14 +3447,10 @@
           if (!savedOrder || !Array.isArray(savedOrder)) return;
 
           const cardsMap = {};
-          Array.from(workspaceGrid.children).forEach(card => {
-            cardsMap[card.dataset.cardId] = card;
-          });
+          Array.from(workspaceGrid.children).forEach(card => cardsMap[card.dataset.cardId] = card);
 
           savedOrder.forEach(id => {
-            if (cardsMap[id]) {
-              workspaceGrid.appendChild(cardsMap[id]);
-            }
+            if (cardsMap[id]) workspaceGrid.appendChild(cardsMap[id]);
           });
         } catch (err) {
           console.warn('Could not restore column order:', err);
@@ -2645,7 +3458,7 @@
       }
 
       // ==========================================
-      // GOOGLE AUTH INITIALIZATION & REPLAY QUEUE
+      // GOOGLE AUTH INITIALIZATION
       // ==========================================
       function initGoogleAuth() {
         if (typeof google === 'undefined' || !google.accounts || !google.accounts.oauth2) {
@@ -2662,7 +3475,6 @@
               isRefreshingToken = false;
 
               if (resp.error) {
-                console.warn('OAuth Response Notice:', resp);
                 if (resp.error === 'immediate_failed' || resp.error === 'interaction_required') {
                   setSessionExpiredUI();
                 } else {
@@ -2688,11 +3500,7 @@
               const retries = [...pendingRetryQueue];
               pendingRetryQueue = [];
               retries.forEach((retryFn) => {
-                try {
-                  retryFn();
-                } catch (e) {
-                  console.error('Error re-running queued request:', e);
-                }
+                try { retryFn(); } catch (e) { console.error('Queue replay err:', e); }
               });
 
               await syncFromDriveAppData(true);
@@ -2713,15 +3521,13 @@
             updateAdminUI();
           }
         } catch (err) {
-          console.error('Error initializing Google Identity Services:', err);
+          console.error('Error initializing GIS:', err);
         }
       }
 
       function scheduleSilentRefresh() {
         if (silentRefreshTimer) clearTimeout(silentRefreshTimer);
-        silentRefreshTimer = setTimeout(() => {
-          silentlyRenewToken();
-        }, 45 * 60 * 1000);
+        silentRefreshTimer = setTimeout(() => { silentlyRenewToken(); }, 45 * 60 * 1000);
       }
 
       async function fetchUserProfileEmail() {
@@ -2738,15 +3544,13 @@
             const data = await res.json();
             currentUserEmail = data.emailAddress || 'User';
             localStorage.setItem(SESSION_USER_KEY, currentUserEmail);
-            if (currentUserEmail) {
-              plannerTitle.textContent = `Tasks (${currentUserEmail})`;
-            }
+            if (currentUserEmail) plannerTitle.textContent = `Tasks (${currentUserEmail})`;
             updateAuthGateUI();
             updateAdminUI();
             startPresenceHeartbeat();
           }
         } catch (e) {
-          console.error('Network failure fetching user profile:', e);
+          console.error('Fetch profile err:', e);
         }
       }
 
@@ -2760,9 +3564,7 @@
         refreshBtn.style.display = 'inline-flex';
         signOutBtn.style.display = 'inline-flex';
 
-        if (email) {
-          plannerTitle.textContent = `Tasks (${email})`;
-        }
+        if (email) plannerTitle.textContent = `Tasks (${email})`;
         updateAuthGateUI();
         updateAdminUI();
         startPresenceHeartbeat();
@@ -2790,21 +3592,22 @@
       }
 
       authBtn.addEventListener('click', () => {
-        if (!isGisReady || !tokenClient) {
-          authStatus.textContent = 'Initializing...';
-          authStatus.className = 'card-status';
-          setTimeout(() => {
-            if (isGisReady && tokenClient) {
-              tokenClient.requestAccessToken({ prompt: 'consent' });
-            } else {
-              authStatus.textContent = 'Failed to load GIS';
-              authStatus.className = 'card-status error';
-            }
-          }, 600);
+        if (isGisReady && tokenClient) {
+          tokenClient.requestAccessToken({ prompt: 'consent' });
           return;
         }
 
-        tokenClient.requestAccessToken({ prompt: 'consent' });
+        authStatus.textContent = 'Initializing...';
+        authStatus.className = 'card-status';
+        
+        setTimeout(() => {
+          if (isGisReady && tokenClient) {
+            tokenClient.requestAccessToken({ prompt: 'consent' });
+          } else {
+            authStatus.textContent = 'Failed to load GIS';
+            authStatus.className = 'card-status error';
+          }
+        }, 400);
       });
 
       refreshBtn.addEventListener('click', async () => {
@@ -2812,6 +3615,7 @@
           setSyncStatus('Refreshing...', 'syncing');
           await syncFromDriveAppData(true);
           await fetchRecentEmails();
+          showNotification('Inbox and workspace data refreshed successfully.', '🔄', 4000);
         } else {
           setSessionExpiredUI();
         }
@@ -2820,19 +3624,27 @@
       signOutBtn.addEventListener('click', () => {
         if (silentRefreshTimer) clearTimeout(silentRefreshTimer);
         if (accessToken && typeof google !== 'undefined' && google.accounts?.oauth2) {
-          try {
-            google.accounts.oauth2.revoke(accessToken, () => {});
-          } catch (e) {
-            console.warn('Token revocation notice:', e);
-          }
+          try { google.accounts.oauth2.revoke(accessToken, () => {}); } catch (e) {}
         }
         localStorage.removeItem(SESSION_TOKEN_KEY);
         localStorage.removeItem(SESSION_USER_KEY);
+        localStorage.removeItem(LOCAL_TASKS_KEY);
+        localStorage.removeItem(LOCAL_NOTES_KEY);
+        localStorage.removeItem(LOCAL_ATTACHMENTS_KEY);
+        localStorage.removeItem(LOCAL_COMMENTS_KEY);
+        localStorage.removeItem(LOCAL_DMS_KEY);
+
         accessToken = null;
         currentUserEmail = null;
         driveSyncFileId = null;
         lastKnownDriveModifiedTime = null;
         pendingRetryQueue = [];
+
+        tasks = [];
+        attachments = [];
+        comments = [];
+        directMessages = [];
+        quickNotes.value = '';
 
         blobUrlCache.forEach(url => URL.revokeObjectURL(url));
         blobUrlCache.clear();
@@ -2840,6 +3652,10 @@
         setLoggedOutUI();
         renderTasks();
         renderAttachments();
+        renderComments();
+        renderOrganizer();
+        renderWidgets();
+        showNotification('Signed out. Local session data has been cleared.', '🔒', 4000);
       });
 
       function setSyncStatus(text, statusClass) {
@@ -2848,7 +3664,7 @@
       }
 
       // ==========================================
-      // MULTIPART DRIVE APPDATA ENGINE & SYNC
+      // DRIVE SYNC ENGINE
       // ==========================================
       function triggerBackgroundSync() {
         if (!accessToken) {
@@ -2886,6 +3702,7 @@
             tasks: tasks,
             scratchpad: quickNotes.value,
             attachments: attachments,
+            folders: folders,
             comments: comments,
             directMessages: directMessages,
             presenceMap: presenceMap,
@@ -2910,7 +3727,6 @@
           }
 
           if (patchRes.status === 404) {
-            console.warn('Drive file ID not found (404). Recreating...');
             driveSyncFileId = null;
             await locateOrCreateDriveFile();
             isSaveInFlight = false;
@@ -2919,8 +3735,6 @@
           }
 
           if (!patchRes.ok) {
-            const errData = await patchRes.text();
-            console.error(`Drive save error HTTP ${patchRes.status}:`, errData);
             setSyncStatus(`Sync Error: ${patchRes.status}`, 'error');
             isSaveInFlight = false;
             return;
@@ -2932,7 +3746,6 @@
           }
           setSyncStatus('Synced with Google Cloud', 'saved');
         } catch (err) {
-          console.error('Drive save exception:', err);
           setSyncStatus('Sync Error: Network', 'error');
         } finally {
           isSaveInFlight = false;
@@ -2961,8 +3774,6 @@
           }
 
           if (!searchRes.ok) {
-            const errData = await searchRes.text();
-            console.error(`Drive search error HTTP ${searchRes.status}:`, errData);
             setSyncStatus(`Sync Error: ${searchRes.status}`, 'error');
             return false;
           }
@@ -2978,15 +3789,12 @@
           const delimiter = `\r\n--${boundary}\r\n`;
           const closeDelimiter = `\r\n--${boundary}--`;
 
-          const metadata = {
-            name: CLOUD_SYNC_FILENAME,
-            parents: ['appDataFolder']
-          };
-
+          const metadata = { name: CLOUD_SYNC_FILENAME, parents: ['appDataFolder'] };
           const mediaData = {
             tasks: tasks,
             scratchpad: quickNotes.value || '',
             attachments: attachments,
+            folders: folders,
             comments: comments,
             directMessages: directMessages,
             presenceMap: presenceMap,
@@ -3019,8 +3827,6 @@
           }
 
           if (!createRes.ok) {
-            const errData = await createRes.text();
-            console.error(`Drive multipart create error HTTP ${createRes.status}:`, errData);
             setSyncStatus(`Sync Error: ${createRes.status}`, 'error');
             return false;
           }
@@ -3031,7 +3837,6 @@
           setSyncStatus('Synced with Google Cloud', 'saved');
           return true;
         } catch (err) {
-          console.error('Error locating or creating Drive file:', err);
           setSyncStatus('Sync Error: Init', 'error');
           return false;
         }
@@ -3061,16 +3866,12 @@
           }
 
           if (!contentRes.ok) {
-            const errData = await contentRes.text();
-            console.error(`Drive download error HTTP ${contentRes.status}:`, errData);
             setSyncStatus(`Sync Error: ${contentRes.status}`, 'error');
             return;
           }
 
           const cloudData = await contentRes.json();
-          if (newModifiedTime) {
-            lastKnownDriveModifiedTime = newModifiedTime;
-          }
+          if (newModifiedTime) lastKnownDriveModifiedTime = newModifiedTime;
 
           if (cloudData) {
             if (Array.isArray(cloudData.tasks)) {
@@ -3090,8 +3891,20 @@
               renderAttachments();
             }
 
+            if (Array.isArray(cloudData.folders)) {
+              folders = Array.from(new Set([...folders, ...cloudData.folders]));
+              localStorage.setItem(LOCAL_FOLDERS_KEY, JSON.stringify(folders));
+            }
+
             if (Array.isArray(cloudData.comments)) {
-              comments = cloudData.comments;
+              const incomingComments = cloudData.comments;
+              const mergedMap = new Map();
+              
+              incomingComments.forEach(c => { if (c && c.id) mergedMap.set(c.id, c); });
+              comments.forEach(c => { if (c && c.id && !mergedMap.has(c.id)) mergedMap.set(c.id, c); });
+
+              comments = Array.from(mergedMap.values());
+              comments.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
               localStorage.setItem(LOCAL_COMMENTS_KEY, JSON.stringify(comments));
               renderComments();
             }
@@ -3104,54 +3917,44 @@
             }
 
             if (cloudData.presenceMap && typeof cloudData.presenceMap === 'object') {
-              presenceMap = cloudData.presenceMap;
+              presenceMap = { ...presenceMap, ...cloudData.presenceMap };
               localStorage.setItem(LOCAL_PRESENCE_KEY, JSON.stringify(presenceMap));
               renderOnlineUsers();
             }
 
             if (Array.isArray(cloudData.admins)) {
-              admins = cloudData.admins;
+              admins = Array.from(new Set([...admins, ...cloudData.admins]));
               localStorage.setItem(LOCAL_ADMINS_KEY, JSON.stringify(admins));
               updateAdminUI();
             }
 
             if (cloudData.nicknames && typeof cloudData.nicknames === 'object') {
-              nicknames = cloudData.nicknames;
+              nicknames = { ...nicknames, ...cloudData.nicknames };
               localStorage.setItem(LOCAL_NICKNAMES_KEY, JSON.stringify(nicknames));
               renderComments();
               renderOnlineUsers();
             }
+
+            renderOrganizer();
+            renderWidgets();
           }
           setSyncStatus('Synced with Google Cloud', 'saved');
         } catch (err) {
-          console.error('Failed to pull remote file contents:', err);
           setSyncStatus('Sync Error: Pull', 'error');
         }
       }
 
       async function pollDriveMetadata() {
         if (!accessToken || isSaveInFlight) return;
-
-        if (!driveSyncFileId) {
-          await locateOrCreateDriveFile();
-          return;
-        }
+        if (!driveSyncFileId) { await locateOrCreateDriveFile(); return; }
 
         try {
           const metaRes = await fetch(`https://www.googleapis.com/drive/v3/files/${driveSyncFileId}?fields=id,modifiedTime`, {
             headers: { Authorization: `Bearer ${accessToken}` }
           });
 
-          if (metaRes.status === 401) {
-            handle401Error(pollDriveMetadata);
-            return;
-          }
-
-          if (metaRes.status === 404) {
-            driveSyncFileId = null;
-            await locateOrCreateDriveFile();
-            return;
-          }
+          if (metaRes.status === 401) { handle401Error(pollDriveMetadata); return; }
+          if (metaRes.status === 404) { driveSyncFileId = null; await locateOrCreateDriveFile(); return; }
 
           if (metaRes.ok) {
             const meta = await metaRes.json();
@@ -3159,14 +3962,11 @@
               await pullRemoteFileContents(meta.modifiedTime);
             }
           }
-        } catch (err) {
-          console.warn('Drive metadata poll network notice:', err);
-        }
+        } catch (err) {}
       }
 
       async function syncFromDriveAppData(force) {
         if (!accessToken) return;
-
         if (!driveSyncFileId) {
           const ready = await locateOrCreateDriveFile();
           if (!ready) return;
@@ -3181,17 +3981,8 @@
       }
 
       // ==========================================
-      // SHARED ACTIVITY & COMMENTS ENGINE (AUTH GATED)
+      // COMMENTS ENGINE
       // ==========================================
-      function getDisplayName(email) {
-        if (!email) return 'User';
-        const cleanEmail = email.toLowerCase().trim();
-        if (nicknames[cleanEmail]) {
-          return nicknames[cleanEmail];
-        }
-        return email;
-      }
-
       function updateAuthGateUI() {
         const isLoggedIn = Boolean(accessToken && currentUserEmail);
         if (isLoggedIn) {
@@ -3226,7 +4017,7 @@
         const commentInput = document.createElement('input');
         commentInput.type = 'text';
         commentInput.id = 'commentInput';
-        commentInput.placeholder = 'Write a comment or update...';
+        commentInput.placeholder = 'Write a comment or shared workspace update...';
         commentInput.maxLength = 300;
         commentInput.autocomplete = 'off';
 
@@ -3255,6 +4046,7 @@
           renderComments();
           triggerBackgroundSync();
           commentInput.value = '';
+          showNotification('New shared comment posted.', '💬', 3000);
         };
 
         postBtn.addEventListener('click', submitComment);
@@ -3278,7 +4070,7 @@
         if (count === 0) {
           const empty = document.createElement('div');
           empty.className = 'empty-feed';
-          empty.textContent = 'No comments yet.';
+          empty.textContent = 'No comments yet. Be the first to share an update!';
           commentsFeed.appendChild(empty);
           return;
         }
@@ -3307,7 +4099,7 @@
           });
 
           const time = document.createElement('span');
-          time.textContent = `• ${comm.timestamp}`;
+          time.textContent = `• ${comm.timestamp || 'Recent'}`;
 
           meta.appendChild(author);
           meta.appendChild(time);
@@ -3320,18 +4112,16 @@
           body.appendChild(text);
           item.appendChild(body);
 
-          // Render delete button ONLY if signed in user is an Admin
-          if (currentUserEmail && isUserAdmin(currentUserEmail)) {
+          const isAuthor = currentUserEmail && rawEmail.toLowerCase() === currentUserEmail.toLowerCase();
+          const isAdmin = currentUserEmail && isUserAdmin(currentUserEmail);
+
+          if (isAdmin || isAuthor) {
             const delBtn = document.createElement('button');
             delBtn.type = 'button';
             delBtn.className = 'comment-delete-btn';
             delBtn.textContent = '🗑️ Delete';
             delBtn.title = 'Delete comment';
             delBtn.addEventListener('click', () => {
-              if (!currentUserEmail || !isUserAdmin(currentUserEmail)) {
-                alert('Permission denied. Admin privileges required.');
-                return;
-              }
               comments = comments.filter(c => c.id !== comm.id);
               localStorage.setItem(LOCAL_COMMENTS_KEY, JSON.stringify(comments));
               renderComments();
@@ -3345,7 +4135,7 @@
       }
 
       // ==========================================
-      // ATTACHMENT RESOLUTION & MIME DETECTION
+      // ATTACHMENTS & MIME
       // ==========================================
       function isImageFile(file) {
         if (!file) return false;
@@ -3364,25 +4154,13 @@
         if (type === 'application/pdf' || ext === 'pdf') {
           return { category: 'pdf', tag: 'PDF', class: 'pdf' };
         }
-        if (
-          type.includes('wordprocessingml') ||
-          type.includes('msword') ||
-          ['doc', 'docx'].includes(ext)
-        ) {
+        if (type.includes('wordprocessingml') || type.includes('msword') || ['doc', 'docx'].includes(ext)) {
           return { category: 'word', tag: 'DOC', class: 'word' };
         }
-        if (
-          type.includes('spreadsheetml') ||
-          type.includes('ms-excel') ||
-          ['xls', 'xlsx', 'csv'].includes(ext)
-        ) {
+        if (type.includes('spreadsheetml') || type.includes('ms-excel') || ['xls', 'xlsx', 'csv'].includes(ext)) {
           return { category: 'excel', tag: 'XLS', class: 'excel' };
         }
-        if (
-          type.includes('presentationml') ||
-          type.includes('ms-powerpoint') ||
-          ['ppt', 'pptx'].includes(ext)
-        ) {
+        if (type.includes('presentationml') || type.includes('ms-powerpoint') || ['ppt', 'pptx'].includes(ext)) {
           return { category: 'ppt', tag: 'PPT', class: 'ppt' };
         }
         return { category: 'doc', tag: ext.toUpperCase() || 'FILE', class: 'generic' };
@@ -3410,9 +4188,6 @@
         return mimeMap[ext] || 'application/octet-stream';
       }
 
-      // ==========================================
-      // CANVAS COMPRESSION (IOS BLOB PIPELINE)
-      // ==========================================
       function compressImageToJpegBlob(file, maxDimension = 1400, quality = 0.8) {
         return new Promise((resolve, reject) => {
           const img = new Image();
@@ -3440,59 +4215,34 @@
             ctx.drawImage(img, 0, 0, width, height);
 
             if (canvas.toBlob) {
-              canvas.toBlob(
-                (blob) => {
-                  if (!blob) {
-                    reject(new Error('Canvas toBlob conversion failed'));
-                    return;
-                  }
-                  const baseName = file.name.replace(/\.[^/.]+$/, '') || 'iphone_upload';
-                  const newName = baseName + '.jpg';
-                  resolve({
-                    blob: blob,
-                    name: newName,
-                    mimeType: 'image/jpeg',
-                    size: blob.size
-                  });
-                },
-                'image/jpeg',
-                quality
-              );
+              canvas.toBlob((blob) => {
+                if (!blob) { reject(new Error('Canvas conversion failed')); return; }
+                const baseName = file.name.replace(/\.[^/.]+$/, '') || 'upload';
+                resolve({ blob, name: baseName + '.jpg', mimeType: 'image/jpeg', size: blob.size });
+              }, 'image/jpeg', quality);
             } else {
               try {
                 const dataUrl = canvas.toDataURL('image/jpeg', quality);
                 const byteString = atob(dataUrl.split(',')[1]);
                 const ab = new ArrayBuffer(byteString.length);
                 const ia = new Uint8Array(ab);
-                for (let i = 0; i < byteString.length; i++) {
-                  ia[i] = byteString.charCodeAt(i);
-                }
+                for (let i = 0; i < byteString.length; i++) ia[i] = byteString.charCodeAt(i);
                 const blob = new Blob([ab], { type: 'image/jpeg' });
-                const baseName = file.name.replace(/\.[^/.]+$/, '') || 'iphone_upload';
-                resolve({
-                  blob: blob,
-                  name: baseName + '.jpg',
-                  mimeType: 'image/jpeg',
-                  size: blob.size
-                });
-              } catch (err) {
-                reject(err);
-              }
+                const baseName = file.name.replace(/\.[^/.]+$/, '') || 'upload';
+                resolve({ blob, name: baseName + '.jpg', mimeType: 'image/jpeg', size: blob.size });
+              } catch (err) { reject(err); }
             }
           };
 
           img.onerror = () => {
             URL.revokeObjectURL(objectUrl);
-            reject(new Error('Image decoding failed in browser'));
+            reject(new Error('Image decode error'));
           };
 
           img.src = objectUrl;
         });
       }
 
-      // ==========================================
-      // MULTIPART BLOB ATTACHMENT UPLOAD
-      // ==========================================
       attachBtn.addEventListener('click', () => filePicker.click());
       filePicker.addEventListener('change', (e) => {
         handleFiles(e.target.files);
@@ -3504,16 +4254,11 @@
         dropZone.classList.add('drag-active');
       });
 
-      dropZone.addEventListener('dragleave', () => {
-        dropZone.classList.remove('drag-active');
-      });
-
+      dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-active'));
       dropZone.addEventListener('drop', (e) => {
         e.preventDefault();
         dropZone.classList.remove('drag-active');
-        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-          handleFiles(e.dataTransfer.files);
-        }
+        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) handleFiles(e.dataTransfer.files);
       });
 
       async function handleFiles(fileList) {
@@ -3551,16 +4296,11 @@
               mimeType = compressed.mimeType;
               estimatedSize = compressed.size;
             } catch (compErr) {
-              console.warn('Canvas compression fallback to raw file blob:', compErr);
               fileBlob = file;
             }
           }
 
-          const metadata = JSON.stringify({
-            name: fileName,
-            parents: ['appDataFolder']
-          });
-
+          const metadata = JSON.stringify({ name: fileName, parents: ['appDataFolder'] });
           const boundary = '-------MgtBoundary' + Date.now();
           const delimiter = '\r\n--' + boundary + '\r\n';
           const closeDelimiter = '\r\n--' + boundary + '--';
@@ -3591,8 +4331,7 @@
 
           if (!uploadRes.ok) {
             const errText = await uploadRes.text();
-            console.error(`Upload error HTTP ${uploadRes.status} (${uploadRes.statusText}):`, errText);
-            setSyncStatus(`Upload failed (${uploadRes.status}: ${uploadRes.statusText || 'Error'})`, 'error');
+            setSyncStatus(`Upload failed (${uploadRes.status})`, 'error');
             throw new Error(`HTTP ${uploadRes.status}: ${errText}`);
           }
 
@@ -3602,15 +4341,18 @@
             id: fileMeta.id,
             name: fileMeta.name || fileName,
             type: mimeType,
-            size: fileMeta.size || estimatedSize
+            size: fileMeta.size || estimatedSize,
+            folder: 'General'
           });
 
           localStorage.setItem(LOCAL_ATTACHMENTS_KEY, JSON.stringify(attachments));
           renderAttachments();
+          renderOrganizer();
+          renderWidgets();
           await triggerBackgroundSync();
           setSyncStatus('Synced with Google Cloud', 'saved');
+          showNotification(`Attachment "${fileName}" uploaded to "General".`, '📎', 3000);
         } catch (err) {
-          console.error('Failed to upload attachment:', err);
           if (!noteStatus.textContent.includes('Upload failed')) {
             setSyncStatus(`Upload failed (${err.message || 'Error'})`, 'error');
           }
@@ -3618,10 +4360,7 @@
       }
 
       async function fetchAttachmentBlobUrl(fileId) {
-        if (blobUrlCache.has(fileId)) {
-          return blobUrlCache.get(fileId);
-        }
-
+        if (blobUrlCache.has(fileId)) return blobUrlCache.get(fileId);
         if (!accessToken) {
           handle401Error(() => fetchAttachmentBlobUrl(fileId));
           return null;
@@ -3641,10 +4380,16 @@
 
           const blob = await res.blob();
           const objUrl = URL.createObjectURL(blob);
+          
+          if (blobUrlCache.size >= 30) {
+            const firstKey = blobUrlCache.keys().next().value;
+            URL.revokeObjectURL(blobUrlCache.get(firstKey));
+            blobUrlCache.delete(firstKey);
+          }
+
           blobUrlCache.set(fileId, objUrl);
           return objUrl;
         } catch (e) {
-          console.error(`Error loading blob for ${fileId}:`, e);
           return null;
         }
       }
@@ -3657,6 +4402,8 @@
         attachments = attachments.filter(a => a.id !== fileId);
         localStorage.setItem(LOCAL_ATTACHMENTS_KEY, JSON.stringify(attachments));
         renderAttachments();
+        renderOrganizer();
+        renderWidgets();
 
         if (blobUrlCache.has(fileId)) {
           URL.revokeObjectURL(blobUrlCache.get(fileId));
@@ -3676,17 +4423,12 @@
             }
           }
           triggerBackgroundSync();
-        } catch (err) {
-          console.error('Delete attachment error:', err);
-        }
+        } catch (err) {}
       }
 
       function renderAttachments() {
         attachmentsRail.innerHTML = '';
-
-        if (!attachments || attachments.length === 0) {
-          return;
-        }
+        if (!attachments || attachments.length === 0) return;
 
         attachments.forEach(att => {
           const meta = getFileCategory(att.name, att.type);
@@ -3735,12 +4477,7 @@
               </div>
             `;
 
-            fetchAttachmentBlobUrl(att.id).then(url => {
-              if (url) {
-                link.href = url;
-              }
-            });
-
+            fetchAttachmentBlobUrl(att.id).then(url => { if (url) link.href = url; });
             card.appendChild(link);
           }
 
@@ -3749,7 +4486,7 @@
       }
 
       // ==========================================
-      // LIVE GMAIL INBOX FETCH
+      // GMAIL INBOX
       // ==========================================
       async function fetchRecentEmails() {
         if (!accessToken) {
@@ -3787,23 +4524,18 @@
             }).then(r => {
               if (r.status === 401) handle401Error(fetchRecentEmails);
               return r.ok ? r.json() : null;
-            }).catch(e => {
-              console.error(`Error fetching message ${m.id}:`, e);
-              return null;
-            })
+            }).catch(() => null)
           );
 
           const fullMessages = await Promise.all(messagePromises);
           renderEmails(fullMessages.filter(m => m && m.id));
         } catch (err) {
-          console.error('Error fetching Gmail messages:', err);
           emailFeed.innerHTML = `<div class="empty-feed" style="color:var(--danger)">Error fetching emails: ${escapeHtml(err.message)}</div>`;
         }
       }
 
       function renderEmails(messages) {
         emailFeed.innerHTML = '';
-
         if (!messages || messages.length === 0) {
           emailFeed.innerHTML = '<div class="empty-feed">No readable messages found.</div>';
           return;
@@ -3815,11 +4547,9 @@
           const subjectHeader = headers.find(h => h.name && h.name.toLowerCase() === 'subject')?.value || '(No Subject)';
           const cleanSnippet = msg.snippet ? unescapeHtml(msg.snippet) : '';
 
-          const directUrl = `https://mail.google.com/mail/u/0/#inbox/${msg.id}`;
-
           const item = document.createElement('a');
           item.className = 'email-item';
-          item.href = directUrl;
+          item.href = `https://mail.google.com/mail/u/0/#inbox/${msg.id}`;
           item.target = '_blank';
           item.rel = 'noopener noreferrer';
           item.title = 'Open in Gmail';
@@ -3841,9 +4571,7 @@
       }
 
       function escapeHtml(str) {
-        return String(str).replace(/[&<>"']/g, m => ({
-          '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
-        }[m]));
+        return String(str).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
       }
 
       function unescapeHtml(str) {
@@ -3852,7 +4580,7 @@
       }
 
       // ==========================================
-      // OPTIMISTIC TASK PLANNER OPERATIONS
+      // TASK PLANNER
       // ==========================================
       function getFilteredTasks() {
         if (currentFilter === 'active') return tasks.filter(t => !t.completed);
@@ -3864,6 +4592,7 @@
         const remaining = tasks.filter(t => !t.completed).length;
         const total = tasks.length;
         taskStats.textContent = `${total === 1 ? '1 task' : `${total} tasks`} • ${remaining} left`;
+        renderWidgets();
       }
 
       function renderTasks() {
@@ -3923,7 +4652,7 @@
               navigator.clipboard.writeText(task.link).then(() => {
                 copyBtn.innerHTML = '✓';
                 setTimeout(() => { copyBtn.innerHTML = '📋'; }, 1400);
-              }).catch(() => {});
+              });
             });
 
             linkWrapper.appendChild(linkChip);
@@ -3963,6 +4692,7 @@
         localStorage.setItem(LOCAL_TASKS_KEY, JSON.stringify(tasks));
         renderTasks();
         triggerBackgroundSync();
+        showNotification(`Added task: "${textVal.substring(0, 30)}${textVal.length > 30 ? '...' : ''}"`, '📝', 3000);
       }
 
       function addTask() {
@@ -3970,18 +4700,13 @@
         let linkVal = taskLinkInput.value.trim();
 
         if (!textVal && !linkVal) return;
-
-        if (!textVal && linkVal) {
-          textVal = extractDomain(linkVal);
-        } else if (textVal && !linkVal) {
-          if (isPureUrl(textVal)) {
-            linkVal = textVal;
-            textVal = extractDomain(textVal);
-          }
+        if (!textVal && linkVal) textVal = extractDomain(linkVal);
+        else if (textVal && !linkVal && isPureUrl(textVal)) {
+          linkVal = textVal;
+          textVal = extractDomain(textVal);
         }
 
         addTaskDirect(textVal, linkVal);
-
         taskInput.value = '';
         taskLinkInput.value = '';
         taskInput.focus();
@@ -4013,33 +4738,23 @@
         });
       });
 
-      // ==========================================
-      // SCRATCHPAD INPUT DEBOUNCE & CLOUD SYNC
-      // ==========================================
       let noteDebounceTimer = null;
       quickNotes.addEventListener('input', () => {
         localStorage.setItem(LOCAL_NOTES_KEY, quickNotes.value);
-
-        if (!accessToken) {
-          setSyncStatus('Local storage', '');
-          return;
-        }
-
+        if (!accessToken) { setSyncStatus('Local storage', ''); return; }
         setSyncStatus('Saving...', 'syncing');
         clearTimeout(noteDebounceTimer);
-
-        noteDebounceTimer = setTimeout(() => {
-          triggerBackgroundSync();
-        }, 500);
+        noteDebounceTimer = setTimeout(() => { triggerBackgroundSync(); }, 500);
       });
 
-      // ==========================================
-      // INITIALIZATION & BACKGROUND INTERVALS
-      // ==========================================
+      // Window Load Initialization
       window.addEventListener('DOMContentLoaded', () => {
         initDragAndDrop();
         renderTasks();
         renderAttachments();
+        renderOrganizer();
+        renderWidgets();
+        calculateCurrency();
         updateAuthGateUI();
         updateAdminUI();
         checkWelcomeSplash();
@@ -4047,6 +4762,7 @@
         if (accessToken) {
           setLoggedInUI(currentUserEmail);
           setSyncStatus('Ready', 'saved');
+          showNotification(`Workspace loaded for ${currentUserEmail}.`, '⚡', 4000);
         } else {
           setLoggedOutUI();
         }
@@ -4054,15 +4770,11 @@
         initGoogleAuth();
 
         setInterval(() => {
-          if (accessToken && !isSaveInFlight) {
-            pollDriveMetadata();
-          }
+          if (accessToken && !isSaveInFlight) pollDriveMetadata();
         }, 30000);
 
         setInterval(() => {
-          if (accessToken) {
-            fetchRecentEmails();
-          }
+          if (accessToken) fetchRecentEmails();
         }, 180000);
       });
     </script>
