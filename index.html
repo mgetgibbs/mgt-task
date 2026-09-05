@@ -58,6 +58,20 @@
       flex-shrink: 0;
       position: sticky;
       top: 0;
+      transition: transform 0.3s ease;
+    }
+
+    .sidebar-backdrop {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background-color: rgba(0, 0, 0, 0.6);
+      z-index: 1000;
+      opacity: 0;
+      transition: opacity 0.3s ease;
     }
 
     .sidebar-brand {
@@ -1153,8 +1167,28 @@
     }
 
     @media (max-width: 768px) {
+      #mobileMenuToggle {
+        display: inline-flex !important;
+      }
+
       aside.sidebar {
-        display: none !important;
+        display: flex !important;
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100vh;
+        z-index: 1001;
+        transform: translateX(-100%);
+        box-shadow: 5px 0 25px rgba(0, 0, 0, 0.5);
+      }
+
+      body.sidebar-open aside.sidebar {
+        transform: translateX(0);
+      }
+
+      body.sidebar-open .sidebar-backdrop {
+        display: block;
+        opacity: 1;
       }
 
       body {
@@ -1317,9 +1351,12 @@
   <div class="app-main">
     
     <header class="top-header">
-      <div class="global-sync-badge" id="globalSyncBadge">
-        <span id="globalSyncDot" style="color: var(--text-muted);">○</span>
-        <span id="globalSyncText">Local Storage (Not Connected)</span>
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <button class="icon-btn mobile-menu-toggle" id="mobileMenuToggle" title="Open Menu" onclick="toggleMobileSidebar()" style="display: none; font-size: 1.25rem;">☰</button>
+        <div class="global-sync-badge" id="globalSyncBadge">
+          <span id="globalSyncDot" style="color: var(--text-muted);">○</span>
+          <span id="globalSyncText">Local Storage (Not Connected)</span>
+        </div>
       </div>
       <div class="header-actions">
         <button class="icon-btn" title="Notifications">🔔</button>
@@ -1339,7 +1376,7 @@
             <div class="metrics-grid">
               <div class="metric-card">
                 <span class="metric-label">Total Tasks</span>
-                <span class="metric-value" id="dashTotalCount">3</span>
+                <span class="metric-value" id="dashTotalCount">0</span>
               </div>
               <div class="metric-card">
                 <span class="metric-label">Completed</span>
@@ -1347,7 +1384,7 @@
               </div>
               <div class="metric-card">
                 <span class="metric-label">Open</span>
-                <span class="metric-value" id="dashOpenCount">3</span>
+                <span class="metric-value" id="dashOpenCount">0</span>
               </div>
             </div>
 
@@ -1577,6 +1614,8 @@
     <button class="mobile-nav-btn" data-target="settings"><span>⚙️</span> Set</button>
   </nav>
 
+  <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="toggleMobileSidebar()"></div>
+
   <script>
     // Standard Exchange Rate Converter Logic ($ and ₱)
     const FIXED_USD_PHP_RATE = 62.51;
@@ -1748,6 +1787,7 @@
           if (cloudData) {
             if (Array.isArray(cloudData.tasks)) {
               tasks = cloudData.tasks;
+              saveTasksToLocal();
               renderTasks();
             }
             if (typeof cloudData.scratchpad === 'string') {
@@ -2144,45 +2184,21 @@
       });
     }
 
-    // Advanced Task State Management
-    let tasks = [
-      { 
-        id: 1, 
-        text: "Finish portfolio", 
-        completed: false, 
-        priority: "High", 
-        timeSpent: 0,
-        subtasks: [
-          { id: 101, text: "Deploy to Vercel", completed: false },
-          { id: 102, text: "Update resume link", completed: true }
-        ],
-        note: "Ensure responsive layout works seamlessly on mobile screens."
-      },
-      { 
-        id: 2, 
-        text: "Apply for VA jobs", 
-        completed: false, 
-        priority: "Medium", 
-        timeSpent: 0,
-        subtasks: [
-          { id: 201, text: "Customize cover letter", completed: false }
-        ],
-        note: "Target remote roles with flexible hours."
-      },
-      { 
-        id: 3, 
-        text: "Study JavaScript", 
-        completed: false, 
-        priority: "Low", 
-        timeSpent: 0,
-        subtasks: [],
-        note: "Review asynchronous functions and OAuth 2.0 token flow."
-      }
-    ];
+    // Advanced Task State Management (UPDATED: Starts empty by default with localStorage persistence)
+    let tasks = JSON.parse(localStorage.getItem('mgt_tasks_list')) || [];
 
     let activeTaskId = null;
     let timerInterval = null;
     let timerSeconds = 0;
+
+    // Helper: Persist tasks to localStorage
+    function saveTasksToLocal() {
+      try {
+        localStorage.setItem('mgt_tasks_list', JSON.stringify(tasks));
+      } catch (err) {
+        console.warn('LocalStorage quota exceeded for tasks:', err);
+      }
+    }
 
     // Saved Links State Management
     let savedLinks = [
@@ -2251,9 +2267,11 @@
       taskList.innerHTML = '';
       fullList.innerHTML = '';
 
+      // UPDATED: Clean empty-state display when task list is empty
       if (tasks.length === 0) {
-        taskList.innerHTML = '<div style="color: var(--text-muted); text-align: center; padding: 16px; font-size: 0.85rem;">No priorities for today. Add one above!</div>';
-        fullList.innerHTML = '<div style="color: var(--text-muted); text-align: center; padding: 16px; font-size: 0.85rem;">No tasks found.</div>';
+        const emptyHtml = '<div style="color: var(--text-muted); text-align: center; padding: 20px; font-size: 0.85rem; font-style: italic;">No priorities for today. Add one above!</div>';
+        taskList.innerHTML = emptyHtml;
+        fullList.innerHTML = emptyHtml;
         updateMetrics();
         return;
       }
@@ -2330,6 +2348,7 @@
         }
         return t;
       });
+      saveTasksToLocal();
       renderTasks();
       triggerWorkspaceSync();
     }
@@ -2347,6 +2366,7 @@
         }
         return t;
       });
+      saveTasksToLocal();
       renderTasks();
       triggerWorkspaceSync();
     }
@@ -2358,12 +2378,14 @@
         }
         return t;
       });
+      saveTasksToLocal();
       renderTasks();
       triggerWorkspaceSync();
     }
 
     function updateTaskNote(taskId, noteVal) {
       tasks = tasks.map(t => t.id === taskId ? { ...t, note: noteVal } : t);
+      saveTasksToLocal();
       triggerWorkspaceSync();
     }
 
@@ -2402,6 +2424,7 @@
         const task = tasks.find(t => t.id === activeTaskId);
         if (task) {
           task.timeSpent = timerSeconds;
+          saveTasksToLocal();
         }
       }, 1000);
     }
@@ -2419,12 +2442,14 @@
       if (activeTaskId) {
         const task = tasks.find(t => t.id === activeTaskId);
         if (task) task.timeSpent = 0;
+        saveTasksToLocal();
       }
       document.getElementById('timerDisplay').textContent = formatTime(timerSeconds);
     }
 
     function toggleTask(id) {
       tasks = tasks.map(t => t.id === id ? { ...t, completed: !t.completed } : t);
+      saveTasksToLocal();
       renderTasks();
       triggerWorkspaceSync();
     }
@@ -2438,6 +2463,7 @@
         document.getElementById('timerDisplay').textContent = '00:00:00';
       }
       tasks = tasks.filter(t => t.id !== id);
+      saveTasksToLocal();
       renderTasks();
       triggerWorkspaceSync();
     }
@@ -2460,6 +2486,7 @@
       });
 
       input.value = '';
+      saveTasksToLocal();
       selectTaskForTimer(newId);
       triggerWorkspaceSync();
     }
@@ -2482,11 +2509,13 @@
       });
 
       input.value = '';
+      saveTasksToLocal();
       selectTaskForTimer(newId);
       triggerWorkspaceSync();
     }
 
     function updateMetrics() {
+      // UPDATED: Dynamically calculates metrics from actual task array
       const total = tasks.length;
       const completed = tasks.filter(t => t.completed).length;
       const open = total - completed;
@@ -2723,6 +2752,10 @@
       });
     });
 
+    function toggleMobileSidebar() {
+      document.body.classList.toggle('sidebar-open');
+    }
+
     function switchView(viewId) {
       navButtons.forEach(b => {
         if (b.getAttribute('data-target') === viewId) {
@@ -2739,6 +2772,8 @@
           p.classList.remove('active');
         }
       });
+      
+      document.body.classList.remove('sidebar-open');
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
