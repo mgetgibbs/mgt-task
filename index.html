@@ -153,22 +153,24 @@
       padding: 0 40px;
       flex-shrink: 0;
       gap: 12px;
+      flex-wrap: wrap;
     }
 
+    /* UPDATED: Removed fixed max-width and clipping rules so the badge scales fluidly without truncation */
     .global-sync-badge {
       font-size: 0.8rem;
       color: var(--text-muted);
       background-color: var(--card-bg-sub);
       border: 1px solid var(--border-color);
-      padding: 6px 12px;
+      padding: 6px 14px;
       border-radius: 20px;
       display: flex;
       align-items: center;
       gap: 6px;
       white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      max-width: 60%;
+      width: auto;
+      max-width: none;
+      overflow: visible;
     }
 
     .header-actions {
@@ -1205,6 +1207,14 @@
         overflow-x: hidden;
       }
 
+      /* UPDATED: Ensures dashboard grid collapses into single-column stacking on mobile */
+      .dashboard-grid-layout {
+        display: flex !important;
+        flex-direction: column !important;
+        width: 100% !important;
+        gap: 20px !important;
+      }
+
       .files-workspace-layout,
       .files-workspace-layout.has-active-reader {
         grid-template-columns: 1fr !important;
@@ -1226,9 +1236,9 @@
       }
 
       .global-sync-badge {
-        max-width: 50%;
-        font-size: 0.72rem;
-        padding: 4px 8px;
+        max-width: none;
+        font-size: 0.75rem;
+        padding: 4px 10px;
       }
 
       .content-container {
@@ -1245,6 +1255,8 @@
 
       .input-row {
         flex-direction: column;
+        flex-wrap: wrap;
+        width: 100%;
       }
 
       .input-row .app-input, 
@@ -1351,7 +1363,7 @@
   <div class="app-main">
     
     <header class="top-header">
-      <div style="display: flex; align-items: center; gap: 12px;">
+      <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
         <button class="icon-btn mobile-menu-toggle" id="mobileMenuToggle" title="Open Menu" onclick="toggleMobileSidebar()" style="display: none; font-size: 1.25rem;">☰</button>
         <div class="global-sync-badge" id="globalSyncBadge">
           <span id="globalSyncDot" style="color: var(--text-muted);">○</span>
@@ -2184,14 +2196,13 @@
       });
     }
 
-    // Advanced Task State Management (UPDATED: Starts empty by default with localStorage persistence)
+    // Advanced Task State Management
     let tasks = JSON.parse(localStorage.getItem('mgt_tasks_list')) || [];
 
     let activeTaskId = null;
     let timerInterval = null;
     let timerSeconds = 0;
 
-    // Helper: Persist tasks to localStorage
     function saveTasksToLocal() {
       try {
         localStorage.setItem('mgt_tasks_list', JSON.stringify(tasks));
@@ -2200,7 +2211,7 @@
       }
     }
 
-    // Saved Links State Management
+    // Saved Links State Management (Preserving GitHub, Google Drive, and ChatGPT)
     let savedLinks = [
       { id: 1, title: "GitHub", url: "https://github.com" },
       { id: 2, title: "Google Drive", url: "https://drive.google.com" },
@@ -2267,7 +2278,6 @@
       taskList.innerHTML = '';
       fullList.innerHTML = '';
 
-      // UPDATED: Clean empty-state display when task list is empty
       if (tasks.length === 0) {
         const emptyHtml = '<div style="color: var(--text-muted); text-align: center; padding: 20px; font-size: 0.85rem; font-style: italic;">No priorities for today. Add one above!</div>';
         taskList.innerHTML = emptyHtml;
@@ -2515,7 +2525,6 @@
     }
 
     function updateMetrics() {
-      // UPDATED: Dynamically calculates metrics from actual task array
       const total = tasks.length;
       const completed = tasks.filter(t => t.completed).length;
       const open = total - completed;
