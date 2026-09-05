@@ -30,7 +30,6 @@
       padding: 0;
     }
 
-    /* CHANGED: Replaced rigid 100vw/100vh with 100% and added overflow-x prevention */
     html, body {
       width: 100%;
       max-width: 100%;
@@ -115,7 +114,6 @@
       border-top: 1px solid var(--border-color);
     }
 
-    /* CHANGED: Mobile bottom navigation bar for small screens */
     .mobile-nav-bar {
       display: none;
     }
@@ -852,7 +850,6 @@
       gap: 8px;
     }
 
-    /* CHANGED: Dynamic grid with safe min-width to avoid narrow cut-offs */
     .files-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
@@ -1056,8 +1053,6 @@
       flex-wrap: wrap;
     }
 
-    /* General Inputs & Buttons */
-    /* CHANGED: Made input rows flex-wrap capable to fit any viewport */
     .input-row {
       display: flex;
       gap: 10px;
@@ -1136,7 +1131,6 @@
       border-color: var(--accent-purple);
     }
 
-    /* CHANGED: Comprehensive Media Queries for Adaptive Responsiveness */
     @media (max-width: 1200px) {
       .dashboard-grid-layout,
       .files-workspace-layout.has-active-reader {
@@ -1159,13 +1153,37 @@
     }
 
     @media (max-width: 768px) {
-      /* Hide standard left sidebar and reveal app with space for bottom navigation bar */
       aside.sidebar {
-        display: none;
+        display: none !important;
       }
 
       body {
-        padding-bottom: 64px; /* clearance for sticky bottom bar */
+        padding-bottom: 70px;
+        min-width: 0;
+        width: 100vw;
+        max-width: 100%;
+        overflow-x: hidden;
+      }
+
+      .app-main {
+        width: 100%;
+        max-width: 100vw;
+        overflow-x: hidden;
+      }
+
+      .files-workspace-layout,
+      .files-workspace-layout.has-active-reader {
+        grid-template-columns: 1fr !important;
+        width: 100%;
+        max-width: 100%;
+      }
+
+      .files-grid {
+        grid-template-columns: 1fr !important;
+      }
+
+      .file-card {
+        width: 100%;
       }
 
       header.top-header {
@@ -1206,7 +1224,7 @@
       }
 
       .task-details-drawer {
-        padding: 12px 14px 14px 14px; /* Unindent drawer on narrow screens */
+        padding: 12px 14px 14px 14px;
       }
 
       .link-pill {
@@ -1235,7 +1253,6 @@
         padding: 12px;
       }
 
-      /* CHANGED: Sticky Bottom Navigation Dock for effortless mobile navigation */
       .mobile-nav-bar {
         display: flex;
         position: fixed;
@@ -1314,7 +1331,7 @@
     <div class="content-container">
       
       <section id="dashboard" class="view-panel active">
-        <h1 class="greeting" id="user-greeting">Good afternoon, Gabriel 👋</h1>
+        <h1 class="greeting" id="user-greeting">Good afternoon, User 👋</h1>
 
         <div class="dashboard-grid-layout">
           
@@ -1527,7 +1544,7 @@
           <div style="display: flex; flex-direction: column; gap: 16px; max-width: 500px; width: 100%;">
             <div>
               <label class="metric-label" style="display: block; margin-bottom: 6px;">Display Name</label>
-              <input type="text" id="settingNameInput" class="app-input" value="Gabriel">
+              <input type="text" id="settingNameInput" class="app-input" value="User">
             </div>
             <div>
               <label class="metric-label" style="display: block; margin-bottom: 6px;">Authenticated Gmail Account</label>
@@ -1748,6 +1765,7 @@
             }
             if (Array.isArray(cloudData.filesList)) {
               filesList = cloudData.filesList;
+              try { localStorage.setItem('mgt_files_list', JSON.stringify(filesList)); } catch(e) {}
               renderFiles();
             }
             setGlobalSyncStatus('Synced with Cloud Account', 'var(--success-color)', 'var(--success-color)');
@@ -1763,44 +1781,13 @@
     }
 
     // File Repository State Management (Folders & Files)
-    let foldersList = [
+    let foldersList = JSON.parse(localStorage.getItem('mgt_folders_list')) || [
       { id: 'general', name: 'General', default: true },
       { id: 'documents', name: 'Documents', default: false },
       { id: 'media', name: 'Media & Images', default: false }
     ];
 
-    let filesList = [
-      { 
-        id: 1, 
-        name: "Resume_Gabriel_2026.docx", 
-        type: "Word", 
-        size: "2.4 MB", 
-        icon: "📝", 
-        folderId: "documents", 
-        dataUrl: null, 
-        content: "MGT Workspace Document Preview:\n\nMAR GABRIELLE ESTRELLA TABOTABO\nMechanical Engineering Graduate\nPrompt Engineering & GenAI Specialization\n\nExperience:\nWipro Philippines - Employee Exit Clearance & Professional Transition (July 2026).\nRemote Call Center Agent training (Wave 213) at Purple Track Academy.\nDigital Marketing Virtual Assistant coursework via Doneverse & Vervoe.\n\nKey Projects:\n- Perimeter Fence Construction calculation & scheduling.\n- Covered Pickleball Court structural material and labor estimation." 
-      },
-      { 
-        id: 2, 
-        name: "Project_Budget.xlsx", 
-        type: "Excel", 
-        size: "1.1 MB", 
-        icon: "📊", 
-        folderId: "general", 
-        dataUrl: null, 
-        content: "Category\tItem\tEstimated Cost (PHP)\tStatus\nHardware\tAMD Ryzen 5 Processor\t8500\tCompleted\nCloud AI\tChatGPT Plus & Google AI Pro\t2400\tActive Subscription\nGovernment\tSSS Voluntary Contribution\t960\tPaid Reference Generated\nConstruction\tPerimeter Fence Materials\t45000\tScheduled August 2026\nConstruction\tPickleball Court H-Beams\t78000\tEvaluated" 
-      },
-      { 
-        id: 3, 
-        name: "Portfolio_Mockup.png", 
-        type: "Image", 
-        size: "4.8 MB", 
-        icon: "🖼️", 
-        folderId: "media", 
-        dataUrl: null, 
-        content: null 
-      }
-    ];
+    let filesList = JSON.parse(localStorage.getItem('mgt_files_list')) || [];
 
     let activeReaderFileId = null;
     let isFloatingReader = false;
@@ -1843,10 +1830,10 @@
 
         const gridEl = section.querySelector(`#folder-grid-${folder.id}`);
         if (folderFiles.length === 0) {
-          gridEl.innerHTML = '<div style="color: var(--text-muted); font-size: 0.8rem; font-style: italic; padding: 10px;">Drag and drop files here...</div>';
+          gridEl.innerHTML = '<div style="color: var(--text-muted); font-size: 0.8rem; font-style: italic; padding: 10px;">No files uploaded yet. Drag and drop or upload files above.</div>';
         } else {
           folderFiles.forEach(file => {
-            const isViewing = file.id === activeReaderFileId;
+            const isViewing = String(file.id) === String(activeReaderFileId);
             const card = document.createElement('div');
             card.className = `file-card ${isViewing ? 'active-view' : ''}`;
             card.draggable = true;
@@ -1854,17 +1841,17 @@
 
             card.innerHTML = `
               <div class="file-card-header">
-                <span class="file-icon" style="cursor: pointer;" onclick="previewFileInPage(${file.id})">${file.icon}</span>
-                <button class="file-action-btn file-delete-btn" onclick="deleteFile(${file.id})" title="Delete file">✕</button>
+                <span class="file-icon" style="cursor: pointer;" onclick="previewFileInPage('${file.id}')">${file.icon}</span>
+                <button class="file-action-btn file-delete-btn" onclick="event.stopPropagation(); deleteFile('${file.id}')" title="Delete file">✕</button>
               </div>
               <div id="file-name-container-${file.id}">
                 <span class="file-name" title="${escapeHtml(file.name)}">${escapeHtml(file.name)}</span>
               </div>
               <span class="file-meta">${file.type} • ${file.size}</span>
               <div class="file-actions">
-                <button class="file-action-btn" onclick="startRenaming(${file.id})">✏️ Rename</button>
-                <button class="file-action-btn" onclick="previewFileInPage(${file.id})">🔍 View</button>
-                <button class="file-action-btn" onclick="downloadFile(${file.id})" title="Download file">📥 Download</button>
+                <button class="file-action-btn" onclick="startRenaming('${file.id}')">✏️ Rename</button>
+                <button class="file-action-btn" onclick="previewFileInPage('${file.id}')">🔍 View</button>
+                <button class="file-action-btn" onclick="downloadFile('${file.id}')" title="Download file">📥 Download</button>
               </div>
             `;
             gridEl.appendChild(card);
@@ -1875,8 +1862,27 @@
       });
     }
 
+    function deleteFile(fileId) {
+      const targetId = String(fileId);
+
+      if (String(activeReaderFileId) === targetId) {
+        closeInPageReader();
+      }
+
+      filesList = filesList.filter(f => String(f.id) !== targetId);
+
+      try {
+        localStorage.setItem('mgt_files_list', JSON.stringify(filesList));
+      } catch (e) {
+        console.warn('LocalStorage save failed:', e);
+      }
+
+      renderFiles();
+      triggerWorkspaceSync();
+    }
+
     function previewFileInPage(fileId) {
-      const file = filesList.find(f => f.id === fileId);
+      const file = filesList.find(f => String(f.id) === String(fileId));
       if (!file) return;
 
       activeReaderFileId = fileId;
@@ -1940,6 +1946,7 @@
       });
 
       input.value = '';
+      try { localStorage.setItem('mgt_folders_list', JSON.stringify(foldersList)); } catch(e) {}
       renderFiles();
       triggerWorkspaceSync();
     }
@@ -1948,20 +1955,24 @@
       filesList = filesList.map(f => f.folderId === folderId ? { ...f, folderId: 'general' } : f);
       foldersList = foldersList.filter(f => f.id !== folderId);
       if (activeReaderFileId) {
-        const activeFile = filesList.find(f => f.id === activeReaderFileId);
+        const activeFile = filesList.find(f => String(f.id) === String(activeReaderFileId));
         if (!activeFile) closeInPageReader();
       }
+      try {
+        localStorage.setItem('mgt_files_list', JSON.stringify(filesList));
+        localStorage.setItem('mgt_folders_list', JSON.stringify(foldersList));
+      } catch(e) {}
       renderFiles();
       triggerWorkspaceSync();
     }
 
     function startRenaming(fileId) {
-      const file = filesList.find(f => f.id === fileId);
+      const file = filesList.find(f => String(f.id) === String(fileId));
       if (!file) return;
 
       const container = document.getElementById(`file-name-container-${fileId}`);
       container.innerHTML = `
-        <input type="text" id="rename-input-${fileId}" class="file-name-input" value="${escapeHtml(file.name)}" onkeydown="if(event.key==='Enter') saveRename(${fileId})" onblur="saveRename(${fileId})">
+        <input type="text" id="rename-input-${fileId}" class="file-name-input" value="${escapeHtml(file.name)}" onkeydown="if(event.key==='Enter') saveRename('${fileId}')" onblur="saveRename('${fileId}')">
       `;
       const inputEl = document.getElementById(`rename-input-${fileId}`);
       inputEl.focus();
@@ -1973,18 +1984,19 @@
       if (!inputEl) return;
       const newName = inputEl.value.trim();
       if (newName) {
-        filesList = filesList.map(f => f.id === fileId ? { ...f, name: newName } : f);
-        if (activeReaderFileId === fileId) {
-          const file = filesList.find(f => f.id === fileId);
+        filesList = filesList.map(f => String(f.id) === String(fileId) ? { ...f, name: newName } : f);
+        if (String(activeReaderFileId) === String(fileId)) {
+          const file = filesList.find(f => String(f.id) === String(fileId));
           document.getElementById('readerTitle').innerHTML = `${file.icon} ${escapeHtml(file.name)}`;
         }
+        try { localStorage.setItem('mgt_files_list', JSON.stringify(filesList)); } catch(e) {}
         triggerWorkspaceSync();
       }
       renderFiles();
     }
 
     function downloadFile(fileId) {
-      const file = filesList.find(f => f.id === fileId);
+      const file = filesList.find(f => String(f.id) === String(fileId));
       if (!file) return;
 
       let fileContent = file.content || `MGT Workspace Export for ${file.name}\n\nFile Type: ${file.type}\nFile Size: ${file.size}`;
@@ -2040,7 +2052,8 @@
       e.currentTarget.classList.remove('drag-over');
       const fileId = e.dataTransfer.getData('text/plain');
       if (fileId) {
-        filesList = filesList.map(f => f.id == fileId ? { ...f, folderId: targetFolderId } : f);
+        filesList = filesList.map(f => String(f.id) === String(fileId) ? { ...f, folderId: targetFolderId } : f);
+        try { localStorage.setItem('mgt_files_list', JSON.stringify(filesList)); } catch(e) {}
         renderFiles();
         triggerWorkspaceSync();
       } else {
@@ -2088,6 +2101,7 @@
               objectUrl: objectUrl,
               content: null
             });
+            try { localStorage.setItem('mgt_files_list', JSON.stringify(filesList)); } catch(e) {}
             renderFiles();
             triggerWorkspaceSync();
           };
@@ -2104,6 +2118,7 @@
             objectUrl: objectUrl,
             content: `PDF Document: ${file.name}`
           });
+          try { localStorage.setItem('mgt_files_list', JSON.stringify(filesList)); } catch(e) {}
           renderFiles();
           triggerWorkspaceSync();
         } else {
@@ -2120,6 +2135,7 @@
               objectUrl: objectUrl,
               content: e.target.result || `Uploaded document content for ${file.name}`
             });
+            try { localStorage.setItem('mgt_files_list', JSON.stringify(filesList)); } catch(e) {}
             renderFiles();
             triggerWorkspaceSync();
           };
@@ -2490,8 +2506,8 @@
 
     let tokenClient = null;
     let accessToken = localStorage.getItem('mgt_gmail_token') || null;
-    let currentUserName = localStorage.getItem('mgt_user_name') || 'Gabriel';
-    let currentUserEmail = localStorage.getItem('mgt_user_email') || 'Gabriel';
+    let currentUserName = localStorage.getItem('mgt_user_name') || 'User';
+    let currentUserEmail = localStorage.getItem('mgt_user_email') || '';
 
     function initGoogleAuth() {
       if (typeof google === 'undefined' || !google.accounts || !google.accounts.oauth2) {
@@ -2540,7 +2556,7 @@
       localStorage.removeItem('mgt_gmail_token');
       localStorage.removeItem('mgt_user_email');
       localStorage.removeItem('mgt_user_name');
-      currentUserName = 'Gabriel';
+      currentUserName = 'User';
       updateGreeting(currentUserName);
       setGlobalSyncStatus('Local Storage (Not Connected)', 'var(--text-muted)', 'var(--text-muted)');
       updateAuthUI();
@@ -2572,7 +2588,6 @@
       }
     }
 
-    // Time-Based Greeting Logic
     function updateGreeting(name) {
       const hour = new Date().getHours();
       let timeOfDay = "Good afternoon";
@@ -2698,7 +2713,6 @@
       return String(str).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
     }
 
-    // Navigation Switching Logic (Desktop Sidebar + Mobile Dock)
     const navButtons = document.querySelectorAll('.nav-item, .mobile-nav-btn');
     const viewPanels = document.querySelectorAll('.view-panel');
 
@@ -2725,7 +2739,6 @@
           p.classList.remove('active');
         }
       });
-      // Scroll to top upon navigation switch
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
@@ -2740,7 +2753,6 @@
       switchView('dashboard');
     }
 
-    // Initialize on Load
     window.addEventListener('DOMContentLoaded', () => {
       updateGreeting(currentUserName);
       renderTasks();
